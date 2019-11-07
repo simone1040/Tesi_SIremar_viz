@@ -1,13 +1,12 @@
 from sqlalchemy import create_engine
 import pandas as pd
-import pymysql
 
 
 class SQLManager:
     _instance = None
 
     @staticmethod
-    def getInstance():
+    def get_istance():
         """ Static access method. """
         if SQLManager._instance == None:
             SQLManager()
