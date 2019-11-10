@@ -1,6 +1,7 @@
 from utils.SQLManager import SQLManager
 from matplotlib import pyplot as plt
 from utils.Costants import ASSETS
+import pandas as pd
 
 def getMaxCaricoNave():
     sql = "SELECT tab_metri_garage_navi.*,ship_name " \
@@ -34,18 +35,37 @@ def get_info_from_rfid_code(category_collection_va_rfid_code):
         if rfid_code.count() == 0:
             query = "SELECT category_collection_va_rfid_name,category_collection_va_rfid_lunghezza,category_collection_va_rfid_larghezza,category_collection_va_rfid_delta_larghezza " \
                     "FROM `tab_category_collection_va_rfid` " \
-                    "WHERE `category_collection_va_rfid_code` = '${category_collection_va_rfid_code}'"
+                    "WHERE `category_collection_va_rfid_code` = '{$category_collection_va_rfid_code}'"
             rfid_va_code = SQLManager.get_istance().execute_query(string_sql=query)
-            if(rfid_va_code.count() > 0):
+            if rfid_va_code.count() > 0:
                 name = rfid_va_code.first().getString(0)
-                lunghezza  = rfid_va_code.first().getDouble(1)
-                larghezza  = rfid_va_code.first().getDouble(2)
-                delta  = rfid_va_code.first().getDouble(3)
+                lunghezza = rfid_va_code.first().getDouble(1)
+                larghezza = rfid_va_code.first().getDouble(2)
+                delta = rfid_va_code.first().getDouble(3)
                 mq_occupati = (lunghezza * larghezza) + delta
         else:
             name = rfid_code.first().getString(0)
     return (name, mq_occupati)
 
+def get_va_rfid_code_collection():
+    query = "SELECT category_collection_va_rfid_code,category_collection_va_rfid_name,category_collection_va_rfid_lunghezza,category_collection_va_rfid_larghezza,category_collection_va_rfid_delta_larghezza " \
+            "FROM `tab_category_collection_va_rfid` "
+    return SQLManager.get_istance().execute_query(string_sql=query)
+
+
 def compute_category_name_and_mq_occupati(dataframe):
-    for index, row in dataframe.iterrows():
-        print(row)
+    dataframe["mq_occupati"] = dataframe["category_collection_va_rfid_lunghezza"] * dataframe["category_collection_va_rfid_larghezza"] * dataframe["collection_quantity"].astype(str).astype(int) + dataframe["category_collection_va_rfid_delta_larghezza"]
+    return dataframe
+
+
+def compute_final_dataframe(dataframe, dataframe_quantity, dataframe_veicoli):
+    joined_dataframe = pd.merge(dataframe, dataframe_quantity, how="inner",
+                                left_on=['tot_boardingcard_web_route_code'],
+                                right_on=['tot_boardingcard_web_route_code'])
+    print("numero righe dataframe con categorie essere umani --> ", joined_dataframe.shape[0])
+    joined_dataframe = pd.merge(joined_dataframe, dataframe_veicoli, how="inner",
+                                left_on="tot_boardingcard_web_detail_collection_rfid_code",
+                                right_on="category_collection_va_rfid_code")
+    print("numero righe dataframe filtrate per solo veicoli --> ", joined_dataframe.shape[0])
+    final_dataframe = compute_category_name_and_mq_occupati(joined_dataframe)
+    return final_dataframe

@@ -1,7 +1,10 @@
+from decimal import *
+
 from pyspark.shell import spark
 from pyspark.sql import SQLContext
 from utils.CaricoManager import *
 import argparse
+import pandas as pd
 from utils.Costants import PARQUET_FILE, QUANTITY_PARQUET_FILE
 
 
@@ -21,11 +24,11 @@ if __name__ == "__main__":
 
     if args.cat:
         print("CARICAMENTO DATAFRAME...\n")
-        dataframe = sqlContext.read.parquet(PARQUET_FILE)
-        dataframe_quantity = sqlContext.read.parquet(QUANTITY_PARQUET_FILE)
-        joined_dataframe = dataframe.join(dataframe_quantity,
-                                          "tot_boardingcard_web_route_code", "inner")
-        final_dataframe = compute_category_name_and_mq_occupati(joined_dataframe)
+        dataframe = sqlContext.read.parquet(PARQUET_FILE).toPandas()
+        dataframe_veicoli = get_va_rfid_code_collection()
+        dataframe_quantity = sqlContext.read.parquet(QUANTITY_PARQUET_FILE).toPandas()
+        final_dataframe = compute_final_dataframe(dataframe=dataframe, dataframe_quantity=dataframe_quantity, dataframe_veicoli=dataframe_veicoli)
+        print(final_dataframe.groupby(["tot_boardingcard_web_route_code","route_cappelli_ship_code"])["mq_occupati"].agg("sum"))
 
 
 
