@@ -27,8 +27,8 @@ if __name__ == "__main__":
         dataframe = sqlContext.read.parquet(PARQUET_FILE).toPandas()
         dataframe_veicoli = get_va_rfid_code_collection()
         dataframe_quantity = sqlContext.read.parquet(QUANTITY_PARQUET_FILE).toPandas()
-        final_dataframe = compute_final_dataframe(dataframe=dataframe, dataframe_quantity=dataframe_quantity, dataframe_veicoli=dataframe_veicoli)
-        print(final_dataframe.groupby(["tot_boardingcard_web_route_code","route_cappelli_ship_code"])["mq_occupati"].agg("sum"))
+        final_dataframe = compute_mq_occupati_dataframe(dataframe=dataframe, dataframe_quantity=dataframe_quantity, dataframe_veicoli=dataframe_veicoli)
+        print(final_dataframe.head(10))
 
 
 

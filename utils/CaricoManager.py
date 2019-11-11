@@ -58,7 +58,7 @@ def compute_category_name_and_mq_occupati(dataframe):
     return dataframe
 
 
-def compute_final_dataframe(dataframe, dataframe_quantity, dataframe_veicoli):
+def compute_mq_occupati_dataframe(dataframe, dataframe_quantity, dataframe_veicoli):
     joined_dataframe = pd.merge(dataframe, dataframe_quantity, how="inner",
                                 left_on=['tot_boardingcard_web_route_code'],
                                 right_on=['tot_boardingcard_web_route_code'])
@@ -68,4 +68,9 @@ def compute_final_dataframe(dataframe, dataframe_quantity, dataframe_veicoli):
                                 right_on="category_collection_va_rfid_code")
     print("numero righe dataframe filtrate per solo veicoli --> ", joined_dataframe.shape[0])
     final_dataframe = compute_category_name_and_mq_occupati(joined_dataframe)
+    final_dataframe = final_dataframe.groupby(["tot_boardingcard_web_route_code", "route_cappelli_ship_code","route_cappelli_departure_timestamp"])[
+        "mq_occupati"].agg("sum").reset_index(name ='tot_mq_occupati')
+    print("numero righe mq occupati, comprendenti quelli che occupano 0 --> ", final_dataframe.shape[0])
+    final_dataframe = final_dataframe[final_dataframe["tot_mq_occupati"] > 0]
+    print("numero righe mq occupati filtrate da quelle che occupano  0 --> ", final_dataframe.shape[0])
     return final_dataframe
