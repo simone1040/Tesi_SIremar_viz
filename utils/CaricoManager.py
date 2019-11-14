@@ -4,7 +4,7 @@ from utils.Costants import ASSETS
 import pandas as pd
 
 def getMaxCaricoNave():
-    sql = "SELECT tab_metri_garage_navi.*,ship_name " \
+    sql = "SELECT tab_metri_garage_navi.*,ship_name,ship_code " \
           "FROM tab_metri_garage_navi " \
           "INNER JOIN tab_ship on tab_metri_garage_navi.ship_id = tab_ship.ship_id " \
           "order by ship_id"
@@ -24,53 +24,51 @@ def plotMaxCaricoNave(dataframe):
     plt.show()
 
 
-def get_info_from_rfid_code(category_collection_va_rfid_code):
-    name = "Non Disponibile"
-    mq_occupati = 0
-    if category_collection_va_rfid_code > 0:
-        query = "SELECT category_collection_rfid_name " \
-                    "FROM `tab_category_collection_rfid` " \
-                    "WHERE `category_collection_rfid_code` = '${category_collection_va_rfid_code}'"
-        rfid_code = SQLManager.get_istance().execute_query(string_sql=query)
-        if rfid_code.count() == 0:
-            query = "SELECT category_collection_va_rfid_name,category_collection_va_rfid_lunghezza,category_collection_va_rfid_larghezza,category_collection_va_rfid_delta_larghezza " \
-                    "FROM `tab_category_collection_va_rfid` " \
-                    "WHERE `category_collection_va_rfid_code` = '{$category_collection_va_rfid_code}'"
-            rfid_va_code = SQLManager.get_istance().execute_query(string_sql=query)
-            if rfid_va_code.count() > 0:
-                name = rfid_va_code.first().getString(0)
-                lunghezza = rfid_va_code.first().getDouble(1)
-                larghezza = rfid_va_code.first().getDouble(2)
-                delta = rfid_va_code.first().getDouble(3)
-                mq_occupati = (lunghezza * larghezza) + delta
-        else:
-            name = rfid_code.first().getString(0)
-    return (name, mq_occupati)
+def plotCaricoPerNave(dataframe,dataframe_max_mq):
+    joined_dataframe = pd.merge(dataframe, dataframe_max_mq, how="inner",
+                                left_on="route_cappelli_ship_code",
+                                right_on="ship_code")
+    for ship_code, group in joined_dataframe.groupby(joined_dataframe.ship_code):
+        ship_name = group["ship_name"].iloc[0]
+        fig, (ax1, ax2) = plt.subplots(2)
 
-def get_va_rfid_code_collection():
-    query = "SELECT category_collection_va_rfid_code,category_collection_va_rfid_name,category_collection_va_rfid_lunghezza,category_collection_va_rfid_larghezza,category_collection_va_rfid_delta_larghezza " \
-            "FROM `tab_category_collection_va_rfid` "
-    return SQLManager.get_istance().execute_query(string_sql=query)
+        ax1.plot(group["route_cappelli_departure_timestamp"], group["metri_garage_navi_spazio_totale"])
+        ax1.plot(group[group["category_collection_va_rfid_s18"] == 0]["route_cappelli_departure_timestamp"], group[group["category_collection_va_rfid_s18"] == 0]["tot_mq_occupati"],'o')
+        ax1.legend(["Capienza Totale < S18(mq)", "Occupati < S18(mq)"])
+        ax1.set_title("Mq occupati imbarchi 2018-2019 da nave " + ship_name, loc="center")
+        ax1.tick_params(labelrotation=90)
+        ax1.set_xlabel('Data di partenza')
+        ax1.set_ylabel('Mq')
+        ax1.grid()
 
-
-def compute_category_name_and_mq_occupati(dataframe):
-    dataframe["mq_occupati"] = dataframe["category_collection_va_rfid_lunghezza"] * dataframe["category_collection_va_rfid_larghezza"] * dataframe["collection_quantity"].astype(str).astype(int) + dataframe["category_collection_va_rfid_delta_larghezza"]
-    return dataframe
+        ax2.plot(group["route_cappelli_departure_timestamp"], group["metri_garage_navi_spazio_s18"])
+        ax2.plot(group[group["category_collection_va_rfid_s18"] == 1]["route_cappelli_departure_timestamp"], group[group["category_collection_va_rfid_s18"] == 1]["tot_mq_occupati"],'o')
+        ax2.legend(["Capienza Totale S18(mq)", "Occupati > S18(mq)"])
+        ax2.tick_params(labelrotation=90)
+        ax2.set_xlabel('Data di partenza')
+        ax2.set_ylabel('Mq')
+        ax2.grid()
+        plt.savefig(ASSETS + "divided_carico/divided_carico_"+ship_code+".png")
+    plt.show()
 
 
-def compute_mq_occupati_dataframe(dataframe, dataframe_quantity, dataframe_veicoli):
-    joined_dataframe = pd.merge(dataframe, dataframe_quantity, how="inner",
-                                left_on=['tot_boardingcard_web_route_code'],
-                                right_on=['tot_boardingcard_web_route_code'])
-    print("numero righe dataframe con categorie essere umani --> ", joined_dataframe.shape[0])
-    joined_dataframe = pd.merge(joined_dataframe, dataframe_veicoli, how="inner",
-                                left_on="tot_boardingcard_web_detail_collection_rfid_code",
-                                right_on="category_collection_va_rfid_code")
-    print("numero righe dataframe filtrate per solo veicoli --> ", joined_dataframe.shape[0])
-    final_dataframe = compute_category_name_and_mq_occupati(joined_dataframe)
-    final_dataframe = final_dataframe.groupby(["tot_boardingcard_web_route_code", "route_cappelli_ship_code","route_cappelli_departure_timestamp"])[
-        "mq_occupati"].agg("sum").reset_index(name ='tot_mq_occupati')
-    print("numero righe mq occupati, comprendenti quelli che occupano 0 --> ", final_dataframe.shape[0])
-    final_dataframe = final_dataframe[final_dataframe["tot_mq_occupati"] > 0]
-    print("numero righe mq occupati filtrate da quelle che occupano  0 --> ", final_dataframe.shape[0])
-    return final_dataframe
+def plotCaricoPerNaveTot(dataframe, dataframe_max_mq):
+    joined_dataframe = pd.merge(dataframe, dataframe_max_mq, how="inner",
+                                left_on="route_cappelli_ship_code",
+                                right_on="ship_code")
+    for ship_code, group in joined_dataframe.groupby(joined_dataframe.ship_code):
+        ship_name = group["ship_name"].iloc[0]
+        group_capienza_totale = group.groupby(
+            ["tot_boardingcard_web_route_code", "route_cappelli_ship_code", "route_cappelli_departure_timestamp",
+             "metri_garage_navi_spazio_totale"])["tot_mq_occupati"]. \
+            sum().reset_index(name='tot_mq_occupati')
+        plt.figure()
+        plt.plot(group_capienza_totale["route_cappelli_departure_timestamp"], group_capienza_totale["metri_garage_navi_spazio_totale"])
+        plt.plot(group_capienza_totale["route_cappelli_departure_timestamp"], group_capienza_totale["tot_mq_occupati"], 'o')
+        plt.title("Mq occupati da imbarchi 2018-2019 da nave " + ship_name, loc="center")
+        plt.legend(["Capienza Totale(mq)", "Occupati(mq)"])
+        plt.xlabel('Data di partenza')
+        plt.ylabel('Mq')
+        plt.grid()
+        plt.savefig(ASSETS + "tot_carico/tot_carico_" + ship_code + ".png")
+    plt.show()

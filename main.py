@@ -4,8 +4,7 @@ from pyspark.shell import spark
 from pyspark.sql import SQLContext
 from utils.CaricoManager import *
 import argparse
-import pandas as pd
-from utils.Costants import PARQUET_FILE, QUANTITY_PARQUET_FILE
+from utils.Costants import PARQUET_FILE
 
 
 if __name__ == "__main__":
@@ -14,7 +13,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Visualization of statistics')
     g = parser.add_mutually_exclusive_group()
     g.add_argument('-gmc', help="Plot dei carichi max della nave e salvataggio sulla cartella assets", action='store_true')
-    g.add_argument('-cat', help="Stampa della categoria e dello spazio occupato", action='store_true')
+    g.add_argument('-cat', help="Stampa della categoria e dello spazio occupato per spazio inferiore e superiore a S18", action='store_true')
+    g.add_argument('-tot', help="Stampa della categoria e dello spazio occupato totale", action='store_true')
     args = parser.parse_args()
 
     if args.gmc:
@@ -24,11 +24,16 @@ if __name__ == "__main__":
 
     if args.cat:
         print("CARICAMENTO DATAFRAME...\n")
+        dataframe_max_mq = getMaxCaricoNave()
         dataframe = sqlContext.read.parquet(PARQUET_FILE).toPandas()
-        dataframe_veicoli = get_va_rfid_code_collection()
-        dataframe_quantity = sqlContext.read.parquet(QUANTITY_PARQUET_FILE).toPandas()
-        final_dataframe = compute_mq_occupati_dataframe(dataframe=dataframe, dataframe_quantity=dataframe_quantity, dataframe_veicoli=dataframe_veicoli)
-        print(final_dataframe.head(10))
+        plotCaricoPerNave(dataframe, dataframe_max_mq)
+
+    if args.tot:
+        print("CARICAMENTO DATAFRAME...\n")
+        dataframe_max_mq = getMaxCaricoNave()
+        dataframe = sqlContext.read.parquet(PARQUET_FILE).toPandas()
+        plotCaricoPerNaveTot(dataframe, dataframe_max_mq)
+
 
 
 
