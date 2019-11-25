@@ -1,7 +1,6 @@
-from decimal import *
-
 from pyspark.shell import spark
 from pyspark.sql import SQLContext
+from PyQt5.QtWidgets import QApplication
 from utils.CaricoManager import *
 import argparse
 from utils.Costants import PARQUET_FILE_CARGO, PARQUET_FILE_PRENOTATION

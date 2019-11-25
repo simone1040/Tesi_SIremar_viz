@@ -59,9 +59,8 @@ def plotCaricoPerNavePrenotazioni(dataframe,dataframe_max_mq):
     for ship_code, group in joined_dataframe.groupby(joined_dataframe.ship_code):
         ship_name = group["ship_name"].iloc[0]
         fig, (ax1, ax2) = plt.subplots(2)
-
         ax1.plot(group["booking_ticket_departure_timestamp"], group["metri_garage_navi_spazio_totale"])
-        ax1.plot(group[group["boardingcard_category_s18"] == 0]["booking_ticket_departure_timestamp"], group[group["boardingcard_category_s18"] == 0]["tot_mq_occupati"],'o')
+        ax1.plot(group[group["boardingcard_category_s18"] == 0]["booking_ticket_departure_timestamp"], group[group["boardingcard_category_s18"] == 0]["tot_mq_occupati"], 'o')
         ax1.legend(["Capienza Totale < S18(mq)", "Occupati < S18(mq)"])
         ax1.set_title("Mq occupati imbarchi 2018-2019 da nave " + ship_name, loc="center")
         ax1.tick_params(labelrotation=90)
