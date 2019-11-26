@@ -1,15 +1,18 @@
 from pyspark.shell import spark
 from pyspark.sql import SQLContext
-from PyQt5.QtWidgets import QApplication
+import sys
 from utils.CaricoManager import *
-import argparse
-from utils.Costants import PARQUET_FILE_CARGO, PARQUET_FILE_PRENOTATION
+from PyQt5.QtWidgets import QApplication
+from core.App import MyApp
 
 
 if __name__ == "__main__":
     sc = spark.sparkContext
     sqlContext = SQLContext(sc)
-    parser = argparse.ArgumentParser(description='Visualization of statistics')
+    app = QApplication(sys.argv)
+    my_app = MyApp()
+    sys.exit(app.exec_())
+    """parser = argparse.ArgumentParser(description='Visualization of statistics')
     g = parser.add_mutually_exclusive_group()
     g.add_argument('-gmc', help="Plot dei carichi max della nave e salvataggio sulla cartella assets", action='store_true')
     g.add_argument('-cat', help="Stampa della categoria e dello spazio occupato per spazio inferiore e superiore a S18 per cargo", action='store_true')
@@ -45,7 +48,7 @@ if __name__ == "__main__":
         print("CARICAMENTO DATAFRAME...\n")
         dataframe_max_mq = getMaxCaricoNave()
         dataframe = sqlContext.read.parquet(PARQUET_FILE_PRENOTATION).toPandas()
-        plotCaricoPerNaveTotPrenotation(dataframe, dataframe_max_mq)
+        plotCaricoPerNaveTotPrenotation(dataframe, dataframe_max_mq)"""
 
 
 

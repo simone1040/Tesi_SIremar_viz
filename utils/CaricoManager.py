@@ -11,6 +11,13 @@ def getMaxCaricoNave():
     df = SQLManager.get_istance().execute_query(string_sql=sql)
     return df
 
+def get_distinct_tratte():
+    sql = "SELECT booking_ticket_departure_port_code,booking_ticket_arrival_port_code " \
+          "FROM tab_booking_ticket " \
+          "GROUP BY booking_ticket_departure_port_code,booking_ticket_arrival_port_code "
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    return df
+
 def plotMaxCaricoNave(dataframe):
     res = dataframe.plot.bar(x="ship_name", y=["metri_garage_navi_spazio_totale", "metri_garage_navi_spazio_s18"],
                       figsize=(22, 10))
