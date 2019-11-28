@@ -2,7 +2,7 @@ from pyspark.shell import spark
 from pyspark.sql import SQLContext
 import sys
 from utils.CaricoManager import *
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from core.App import MyApp
 
 
@@ -11,6 +11,9 @@ if __name__ == "__main__":
     sqlContext = SQLContext(sc)
     app = QApplication(sys.argv)
     my_app = MyApp()
+    MainWindow = QMainWindow()
+    my_app.init_UI(MainWindow)
+    MainWindow.show()
     sys.exit(app.exec_())
     """parser = argparse.ArgumentParser(description='Visualization of statistics')
     g = parser.add_mutually_exclusive_group()
