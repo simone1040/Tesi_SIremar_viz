@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1282</width>
-    <height>800</height>
+    <height>801</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>0</x>
       <y>0</y>
       <width>1281</width>
-      <height>751</height>
+      <height>780</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -196,7 +196,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalSpacer_2">
+      <layout class="QHBoxLayout" name="top_separator_layout">
        <property name="bottomMargin">
         <number>5</number>
        </property>
@@ -217,7 +217,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="Line" name="line">
+        <widget class="Line" name="top_separator_line">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -255,22 +255,123 @@
       </widget>
      </item>
      <item>
-      <spacer name="verticalSpacer">
+      <spacer name="verticalSpacer_2">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>40</height>
+         <height>20</height>
         </size>
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="Line" name="bottom_separator_line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>71</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="footer_layout" stretch="0,0,0,0,0,0">
+       <property name="spacing">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
+        <number>5</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_product_by">
+         <property name="text">
+          <string>Copyright Simone Condorelli</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_10">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Version :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_11">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_version">
+         <property name="text">
+          <string>0.0.1</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>

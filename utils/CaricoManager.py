@@ -18,6 +18,22 @@ def get_distinct_tratte():
     df = SQLManager.get_istance().execute_query(string_sql=sql)
     return df
 
+def get_distinct_ship():
+    sql = "SELECT ship_code,ship_name " \
+          "FROM tab_ship " \
+          "ORDER BY ship_name"
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    return df
+
+def from_name_ship_get_code(ship_name):
+    sql = "SELECT ship_code " \
+          "FROM tab_ship " \
+          "WHERE ship_name= {}" \
+          "ORDER BY ship_name".format(ship_name)
+    print(sql)
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    return df
+
 def plotMaxCaricoNave(dataframe):
     res = dataframe.plot.bar(x="ship_name", y=["metri_garage_navi_spazio_totale", "metri_garage_navi_spazio_s18"],
                       figsize=(22, 10))
