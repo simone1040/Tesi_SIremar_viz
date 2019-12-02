@@ -5,17 +5,27 @@ from utils.CaricoManager import *
 from PyQt5.QtWidgets import (
     QApplication, QFileDialog, QHBoxLayout, QLabel, QLineEdit, QMessageBox,
     QPushButton, QRadioButton, QVBoxLayout, QWidget, QComboBox, QCalendarWidget, QDateEdit, QSizePolicy, QSpacerItem,
-    QFrame, QStatusBar, QMenuBar, QMainWindow)
+    QFrame, QStatusBar, QMenuBar, QMainWindow, QGridLayout, QLayout)
 
 class MyApp(QWidget):
     def __init__(self):
         super().__init__()
 
     def init_UI(self, MainWindow):
+        #Inizializzazione delle variabili che servono a creare il grafico
+        self.end_data = ""
+        self.start_data = ""
+        self.ship_code = ""
+        self.ship_name = ""
+        self.departure_port_code = ""
+        self.arrival_port_code = ""
+        #Inizializzazione dell'interfaccia grafica
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        self.gridLayout = QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName("gridLayout")
         self.verticalLayoutWidget = QWidget(self.centralwidget)
         self.verticalLayoutWidget.setGeometry(QRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
@@ -23,7 +33,7 @@ class MyApp(QWidget):
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontal_label = QHBoxLayout()
-        self.horizontal_label.setContentsMargins(-1, 10, -1, -1)
+        self.horizontal_label.setContentsMargins(-1, 1, -1, -1)
         self.horizontal_label.setSpacing(15)
         self.horizontal_label.setObjectName("horizontal_label")
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -64,9 +74,7 @@ class MyApp(QWidget):
         self.horizontalButton.setObjectName("horizontalButton")
         spacerItem4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalButton.addItem(spacerItem4)
-        self.create_graphics = QPushButton(self.verticalLayoutWidget)
-        self.create_graphics.setLayoutDirection(Qt.LeftToRight)
-        self.create_graphics.setObjectName("create_graphics")
+        self.create_graphics = self.create_statistics_push_button()
         self.horizontalButton.addWidget(self.create_graphics)
         self.clear_filter = self.clear_filter_search_data()
         self.horizontalButton.addWidget(self.clear_filter)
@@ -86,21 +94,28 @@ class MyApp(QWidget):
         spacerItem7 = QSpacerItem(40, 18, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.top_separator_layout.addItem(spacerItem7)
         self.verticalLayout.addLayout(self.top_separator_layout)
+        self.placeholder_image = QPixmap(PLACEHOLDER_PATH)
+        self.placeholder_image = self.placeholder_image.scaledToWidth(IMAGE_WIDTH)
         self.statistics_image = QLabel(self.verticalLayoutWidget)
-        self.statistics_image.setText("")
-        self.statistics_image.setPixmap(QPixmap(PLACEHOLDER_PATH))
+        self.statistics_image.setPixmap(self.placeholder_image)
         self.statistics_image.setAlignment(Qt.AlignCenter)
         self.statistics_image.setObjectName("statistics_image")
         self.verticalLayout.addWidget(self.statistics_image)
-        spacerItem8 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        spacerItem8 = QSpacerItem(20,45, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem8)
+        self.bottom_separator_layout = QHBoxLayout()
+        self.bottom_separator_layout.setContentsMargins(-1, -1, -1, 5)
+        self.bottom_separator_layout.setObjectName("top_separator_layout")
+        spacerItem6 = QSpacerItem(40, 25, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.bottom_separator_layout.addItem(spacerItem6)
         self.bottom_separator_line = QFrame(self.verticalLayoutWidget)
         self.bottom_separator_line.setFrameShape(QFrame.HLine)
         self.bottom_separator_line.setFrameShadow(QFrame.Sunken)
-        self.bottom_separator_line.setObjectName("bottom_separator_line")
-        self.verticalLayout.addWidget(self.bottom_separator_line)
-        spacerItem9 = QSpacerItem(20, 71, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem9)
+        self.bottom_separator_line.setObjectName("top_separator_line")
+        self.bottom_separator_layout.addWidget(self.bottom_separator_line)
+        spacerItem7 = QSpacerItem(40, 40, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.bottom_separator_layout.addItem(spacerItem7)
+        self.verticalLayout.addLayout(self.bottom_separator_layout)
         self.footer_layout = QHBoxLayout()
         self.footer_layout.setContentsMargins(-1, -1, -1, 5)
         self.footer_layout.setSpacing(6)
@@ -121,6 +136,8 @@ class MyApp(QWidget):
         self.label_version.setObjectName("label_version")
         self.footer_layout.addWidget(self.label_version)
         self.verticalLayout.addLayout(self.footer_layout)
+        self.verticalLayout.addStretch()
+        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setGeometry(QRect(0, 0, 1282, 22))
@@ -159,6 +176,11 @@ class MyApp(QWidget):
                 cb.addItem(row["booking_ticket_departure_port_code"]+"-"+row["booking_ticket_arrival_port_code"])
         return cb
 
+    def function_create_statistics(self):
+        image = QPixmap("./assets/max_carico.png")
+        image = image.scaledToWidth(IMAGE_WIDTH)
+        self.statistics_image.setPixmap(image)
+
     def ship_filter_selectbox(self):
         cb = QComboBox(self.verticalLayoutWidget)
         cb.setObjectName("nave_combobox")
@@ -180,6 +202,13 @@ class MyApp(QWidget):
         cf.clicked.connect(self.function_clear_filter)
         return cf
 
+    def create_statistics_push_button(self):
+        pb = QPushButton(self.verticalLayoutWidget)
+        pb.setLayoutDirection(Qt.LeftToRight)
+        pb.clicked.connect(self.function_create_statistics)
+        pb.setObjectName("create_graphics")
+        return pb
+
     def function_clear_filter(self):
         self.end_data = ""
         self.start_data = ""
@@ -187,10 +216,10 @@ class MyApp(QWidget):
         self.ship_name = ""
         self.departure_port_code = ""
         self.arrival_port_code = ""
-        self.ship_filter_selectbox().setCurrentIndex(0)
-        self.tratta_filter_selectbox().setCurrentIndex(0)
-        self.init_data_selectbox().setDate(QDate.currentDate())
-        self.end_data_selectbox().setDate(QDate.currentDate())
+        self.nave_combobox.setCurrentIndex(0)
+        self.tratta_combobox.setCurrentIndex(0)
+        self.data_partenza_selector.setDate(QDate.currentDate())
+        self.data_arrivo_selector.setDate(QDate.currentDate())
 
     def update_ship(self, text):
         ship = text.split("-")
