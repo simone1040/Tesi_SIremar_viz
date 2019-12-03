@@ -1,3 +1,4 @@
+from utils import CaricoManager
 from utils.Costants import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QIcon, QImage, QPixmap
@@ -13,12 +14,14 @@ class MyApp(QWidget):
 
     def init_UI(self, MainWindow):
         #Inizializzazione delle variabili che servono a creare il grafico
-        self.end_data = ""
-        self.start_data = ""
-        self.ship_code = ""
-        self.ship_name = ""
-        self.departure_port_code = ""
-        self.arrival_port_code = ""
+        self.data = {
+            "booking_ticket_departure_timestamp": "",
+            "booking_ticket_arrival_timestamp": "",
+            "ship_code": "",
+            "ship_name": "",
+            "departure_port_code": "",
+            "arrival_port_code": ""
+        }
         #Inizializzazione dell'interfaccia grafica
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -177,9 +180,7 @@ class MyApp(QWidget):
         return cb
 
     def function_create_statistics(self):
-        image = QPixmap("./assets/max_carico.png")
-        image = image.scaledToWidth(IMAGE_WIDTH)
-        self.statistics_image.setPixmap(image)
+        CaricoManager.image_statistics_filtered(self.data)
 
     def ship_filter_selectbox(self):
         cb = QComboBox(self.verticalLayoutWidget)
@@ -210,12 +211,14 @@ class MyApp(QWidget):
         return pb
 
     def function_clear_filter(self):
-        self.end_data = ""
-        self.start_data = ""
-        self.ship_code = ""
-        self.ship_name = ""
-        self.departure_port_code = ""
-        self.arrival_port_code = ""
+        self.data = {
+            "booking_ticket_departure_timestamp": "",
+            "booking_ticket_arrival_timestamp": "",
+            "ship_code": "",
+            "ship_name": "",
+            "departure_port_code": "",
+            "arrival_port_code": ""
+        }
         self.nave_combobox.setCurrentIndex(0)
         self.tratta_combobox.setCurrentIndex(0)
         self.data_partenza_selector.setDate(QDate.currentDate())
@@ -224,17 +227,21 @@ class MyApp(QWidget):
     def update_ship(self, text):
         ship = text.split("-")
         if(len(ship) == 2):
-            self.ship_code, self.ship_name = ship
+            self.data["ship_code"], self.data["ship_name"] = ship
         else:
-            self.ship_code = self.ship_name = ""
+            self.data["ship_code"] = self.data["ship_name"] = ""
 
     def update_tratta(self, text):
         port = text.split("-")
         if(len(port) == 2):
-            self.departure_port_code, self.arrival_port_code = port
+            self.data["departure_port_code"], self.data["arrival_port_code"] = port
         else:
-            self.departure_port_code = self.arrival_port_code = ""
+            self.data["departure_port_code"] = self.data["arrival_port_code"] = ""
 
+    def show_image(self):
+        image = QPixmap(TEMP_IMAGE_STATISTICS)
+        image = image.scaledToWidth(IMAGE_WIDTH)
+        self.statistics_image.setPixmap(image)
 
     def init_data_selectbox(self):
         date_edit = QDateEdit(self.verticalLayoutWidget)
@@ -251,7 +258,7 @@ class MyApp(QWidget):
         return date_edit
 
     def set_start_data(self, data):
-        self.start_data = data
+        self.data["booking_ticket_departure_timestamp"] = data
 
     def set_end_data(self, data):
-        self.end_data = data
+        self.data["booking_ticket_arrival_timestamp"] = data

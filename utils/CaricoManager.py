@@ -1,6 +1,6 @@
 from utils.SQLManager import SQLManager
 from matplotlib import pyplot as plt
-from utils.Costants import ASSETS
+from utils.Costants import *
 import pandas as pd
 
 def getMaxCaricoNave():
@@ -30,9 +30,16 @@ def from_name_ship_get_code(ship_name):
           "FROM tab_ship " \
           "WHERE ship_name= {}" \
           "ORDER BY ship_name".format(ship_name)
-    print(sql)
     df = SQLManager.get_istance().execute_query(string_sql=sql)
     return df
+
+def from_port_code_get_name(port_code):
+    sql = "SELECT port_name " \
+          "FROM tab_port " \
+          "WHERE port_code='{}' ".format(port_code)
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    port_name = df["port_name"].iloc[0]
+    return port_name
 
 def plotMaxCaricoNave(dataframe):
     res = dataframe.plot.bar(x="ship_name", y=["metri_garage_navi_spazio_totale", "metri_garage_navi_spazio_s18"],
@@ -44,34 +51,6 @@ def plotMaxCaricoNave(dataframe):
     plt.ylabel('Capienza garage in mq')
     res.legend(["Capienza Totale(mq)", "Capienza S18(mq)"])
     plt.savefig(ASSETS + "max_carico.png")
-    plt.show()
-
-
-def plotCaricoPerNave(dataframe,dataframe_max_mq):
-    joined_dataframe = pd.merge(dataframe, dataframe_max_mq, how="inner",
-                                left_on="route_cappelli_ship_code",
-                                right_on="ship_code")
-    for ship_code, group in joined_dataframe.groupby(joined_dataframe.ship_code):
-        ship_name = group["ship_name"].iloc[0]
-        fig, (ax1, ax2) = plt.subplots(2)
-
-        ax1.plot(group["route_cappelli_departure_timestamp"], group["metri_garage_navi_spazio_totale"])
-        ax1.plot(group[group["category_collection_va_rfid_s18"] == 0]["route_cappelli_departure_timestamp"], group[group["category_collection_va_rfid_s18"] == 0]["tot_mq_occupati"],'o')
-        ax1.legend(["Capienza Totale < S18(mq)", "Occupati < S18(mq)"])
-        ax1.set_title("Mq occupati imbarchi 2018-2019 da nave " + ship_name, loc="center")
-        ax1.tick_params(labelrotation=90)
-        ax1.set_xlabel('Data di partenza')
-        ax1.set_ylabel('Mq')
-        ax1.grid()
-
-        ax2.plot(group["route_cappelli_departure_timestamp"], group["metri_garage_navi_spazio_s18"])
-        ax2.plot(group[group["category_collection_va_rfid_s18"] == 1]["route_cappelli_departure_timestamp"], group[group["category_collection_va_rfid_s18"] == 1]["tot_mq_occupati"],'o')
-        ax2.legend(["Capienza Totale S18(mq)", "Occupati > S18(mq)"])
-        ax2.tick_params(labelrotation=90)
-        ax2.set_xlabel('Data di partenza')
-        ax2.set_ylabel('Mq')
-        ax2.grid()
-        plt.savefig(ASSETS + "divided_carico/divided_carico_"+ship_code+".png")
     plt.show()
 
 
@@ -142,3 +121,20 @@ def plotCaricoPerNaveTotPrenotation(dataframe, dataframe_max_mq):
         plt.grid()
         plt.savefig(ASSETS + "tot_carico_prenotation/tot_carico_" + ship_code + ".png")
     plt.show()
+
+#Funzione che viene chiamata quando si clicca il tasto di generazione del grafico, che viene salvato sull'assets
+def image_statistics_filtered(filter):
+    joined_dataframe = pd.merge(DATAFRAME_APPLICATION["dataframe_prenotazioni"], DATAFRAME_APPLICATION["dataframe_max_mq_occupati"], how="inner",
+                                left_on="ship_code",
+                                right_on="ship_code")
+    for key, values in filter.items():
+        if values != "":
+            if key == "ship_code":
+                joined_dataframe = joined_dataframe[joined_dataframe["ship_code"] == filter["ship_code"]]
+            if key == "departure_port_code":
+                port_name = from_port_code_get_name(filter["departure_port_code"])
+                joined_dataframe = joined_dataframe[joined_dataframe["departure_port_name"] == port_name]
+            if key == "arrival_port_code":
+                port_name = from_port_code_get_name(filter["arrival_port_code"])
+                joined_dataframe = joined_dataframe[joined_dataframe["arrival_port_name"] == port_name]
+

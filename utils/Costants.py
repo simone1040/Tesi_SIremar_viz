@@ -9,3 +9,7 @@ VERSION = "0.0.1"
 APP_TITLE = "Siremar Cargo analysis"
 PLACEHOLDER_PATH = "./assets/app_images/placeholder.jpg"
 TEMP_IMAGE_STATISTICS = "./assets/app_images/statistics.jpg"
+DATAFRAME_APPLICATION = {
+    "dataframe_prenotazioni": None,
+    "dataframe_max_mq_occupati": None
+}
