@@ -1,18 +1,17 @@
+from easygui import msgbox
+
 from utils import CaricoManager
-from utils.Costants import *
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QIcon, QImage, QPixmap
+from PyQt5.QtGui import QPixmap
 from utils.CaricoManager import *
-from PyQt5.QtWidgets import (
-    QApplication, QFileDialog, QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-    QPushButton, QRadioButton, QVBoxLayout, QWidget, QComboBox, QCalendarWidget, QDateEdit, QSizePolicy, QSpacerItem,
-    QFrame, QStatusBar, QMenuBar, QMainWindow, QGridLayout, QLayout)
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
+                             QSpacerItem, QFrame, QMenuBar, QGridLayout)
+from utils.UtilsFunction import FigureToQPixmap
+
 
 class MyApp(QWidget):
     def __init__(self):
         super().__init__()
-
-    def init_UI(self, MainWindow):
         #Inizializzazione delle variabili che servono a creare il grafico
         self.data = {
             "booking_ticket_departure_timestamp": "",
@@ -22,6 +21,8 @@ class MyApp(QWidget):
             "departure_port_code": "",
             "arrival_port_code": ""
         }
+
+    def init_UI(self, MainWindow):
         #Inizializzazione dell'interfaccia grafica
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -180,7 +181,13 @@ class MyApp(QWidget):
         return cb
 
     def function_create_statistics(self):
-        CaricoManager.image_statistics_filtered(self.data)
+        if self.data["ship_code"] == "":
+            msgbox("Selezionare almeno una nave")
+        elif self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
+            msgbox("La data di partenza non può essere più piccola della data di arrivo")
+        else:
+            figure = CaricoManager.image_statistics_filtered(self.data)
+            self.show_image(figure)
 
     def ship_filter_selectbox(self):
         cb = QComboBox(self.verticalLayoutWidget)
@@ -221,6 +228,7 @@ class MyApp(QWidget):
         }
         self.nave_combobox.setCurrentIndex(0)
         self.tratta_combobox.setCurrentIndex(0)
+        self.statistics_image.setPixmap(self.placeholder_image)
         self.data_partenza_selector.setDate(QDate.currentDate())
         self.data_arrivo_selector.setDate(QDate.currentDate())
 
@@ -238,8 +246,8 @@ class MyApp(QWidget):
         else:
             self.data["departure_port_code"] = self.data["arrival_port_code"] = ""
 
-    def show_image(self):
-        image = QPixmap(TEMP_IMAGE_STATISTICS)
+    def show_image(self,figure):
+        image = FigureToQPixmap(figure)
         image = image.scaledToWidth(IMAGE_WIDTH)
         self.statistics_image.setPixmap(image)
 

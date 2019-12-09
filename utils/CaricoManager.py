@@ -137,4 +137,27 @@ def image_statistics_filtered(filter):
             if key == "arrival_port_code":
                 port_name = from_port_code_get_name(filter["arrival_port_code"])
                 joined_dataframe = joined_dataframe[joined_dataframe["arrival_port_name"] == port_name]
+            if key == "booking_ticket_departure_timestamp":
+                booking_ticket_departure_timestamp = filter["booking_ticket_departure_timestamp"].toString("yyyy-MM-dd")
+                joined_dataframe = joined_dataframe[joined_dataframe["booking_ticket_departure_timestamp"] >= booking_ticket_departure_timestamp]
+            if key == "booking_ticket_arrival_timestamp":
+                booking_ticket_arrival_timestamp = filter["booking_ticket_arrival_timestamp"].toString("yyyy-MM-dd")
+                joined_dataframe = joined_dataframe[joined_dataframe["booking_ticket_departure_timestamp"] <= booking_ticket_arrival_timestamp]
+    group_capienza_totale = joined_dataframe.groupby(
+        ["booking_ticket_departure_timestamp", "ship_code", "departure_port_name", "arrival_port_name",
+         "metri_garage_navi_spazio_totale"])["tot_mq_occupati"]. \
+        sum().reset_index(name='tot_mq_occupati')
+    fig = plt.figure(figsize=(IMAGE_WIDTH/IMAGE_INFO["dpi_monitor"], IMAGE_HEIGHT/IMAGE_INFO["dpi_monitor"]), dpi=IMAGE_INFO["dpi_monitor"])
+    plt.plot(group_capienza_totale["booking_ticket_departure_timestamp"],
+             group_capienza_totale["metri_garage_navi_spazio_totale"])
+    plt.plot(group_capienza_totale["booking_ticket_departure_timestamp"], group_capienza_totale["tot_mq_occupati"], 'o')
+    plt.title("Mq occupati da imbarchi dal " + booking_ticket_departure_timestamp + " al " + booking_ticket_arrival_timestamp, loc="center")
+    plt.legend(["Capienza Totale(mq)", "Occupati(mq)"])
+    plt.xlabel('Data di partenza')
+    plt.xticks(rotation=45)
+    plt.ylabel('Mq')
+    plt.grid()
+    return fig
+
+
 
