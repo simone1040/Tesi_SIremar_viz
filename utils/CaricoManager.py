@@ -25,13 +25,16 @@ def get_distinct_ship():
     df = SQLManager.get_istance().execute_query(string_sql=sql)
     return df
 
-def from_name_ship_get_code(ship_name):
-    sql = "SELECT ship_code " \
+def get_ship_name(ship_code):
+    sql = "SELECT ship_name " \
           "FROM tab_ship " \
-          "WHERE ship_name= {}" \
-          "ORDER BY ship_name".format(ship_name)
+          "WHERE ship_code='{}'" \
+          "ORDER BY ship_code".format(ship_code)
     df = SQLManager.get_istance().execute_query(string_sql=sql)
-    return df
+    if not df.empty:
+        return df["ship_name"].iloc[0]
+    else:
+        return ship_code
 
 def from_port_code_get_name(port_code):
     sql = "SELECT port_name " \
@@ -124,13 +127,14 @@ def plotCaricoPerNaveTotPrenotation(dataframe, dataframe_max_mq):
 
 #Funzione che viene chiamata quando si clicca il tasto di generazione del grafico, che viene salvato sull'assets
 def image_statistics_filtered(filter):
+    list_of_ship_name = []
     joined_dataframe = pd.merge(DATAFRAME_APPLICATION["dataframe_prenotazioni"], DATAFRAME_APPLICATION["dataframe_max_mq_occupati"], how="inner",
                                 left_on="ship_code",
                                 right_on="ship_code")
     for key, values in filter.items():
         if values != "":
-            if key == "ship_code":
-                joined_dataframe = joined_dataframe[joined_dataframe["ship_code"] == filter["ship_code"]]
+            if key == "ship":
+                joined_dataframe = joined_dataframe[joined_dataframe["ship_code"].isin(filter["ship"])]
             if key == "departure_port_code":
                 port_name = from_port_code_get_name(filter["departure_port_code"])
                 joined_dataframe = joined_dataframe[joined_dataframe["departure_port_name"] == port_name]
@@ -148,12 +152,37 @@ def image_statistics_filtered(filter):
          "metri_garage_navi_spazio_totale"])["tot_mq_occupati"]. \
         sum().reset_index(name='tot_mq_occupati')
     fig = plt.figure(figsize=(IMAGE_WIDTH/IMAGE_INFO["dpi_monitor"], IMAGE_HEIGHT/IMAGE_INFO["dpi_monitor"]), dpi=IMAGE_INFO["dpi_monitor"])
-    plt.plot(group_capienza_totale["booking_ticket_departure_timestamp"],
-             group_capienza_totale["metri_garage_navi_spazio_totale"])
-    plt.plot(group_capienza_totale["booking_ticket_departure_timestamp"], group_capienza_totale["tot_mq_occupati"], 'o')
+
+    for values in group_capienza_totale.ship_code.unique():
+        #INIZIO DATAFRAME PER IL LIMITE CHE COSI PRENDE L'INTERO GRAFICO
+        dataframe_lim = pd.DataFrame(group_capienza_totale.booking_ticket_departure_timestamp.unique(),columns =['booking_ticket_departure_timestamp'])
+        dataframe_lim["metri_garage_navi_spazio_totale"] = group_capienza_totale[group_capienza_totale["ship_code"] == values]["metri_garage_navi_spazio_totale"].iloc[0]
+        #FINE
+
+        #INIZIO PRENDO IL NOME DELLA NAVE E LO APPENDO DUE VOLTE PERCHE LO USO DUE VOLTE NEL PLOT
+        ship_name = get_ship_name(values)
+        list_of_ship_name.append(ship_name)
+        list_of_ship_name.append(ship_name)
+        #FINE
+
+        #INIZIO PLOT DEL LIMITE E DEI PUNTI
+        plt.plot(dataframe_lim["booking_ticket_departure_timestamp"],
+                 dataframe_lim["metri_garage_navi_spazio_totale"],label=ship_name)
+
+        plt.plot(group_capienza_totale[group_capienza_totale["ship_code"] == values]["booking_ticket_departure_timestamp"],
+             group_capienza_totale[group_capienza_totale["ship_code"] == values]["tot_mq_occupati"], 'o',label=ship_name)
+        #FINE
     plt.title("Mq occupati da imbarchi dal " + booking_ticket_departure_timestamp + " al " + booking_ticket_arrival_timestamp, loc="center")
-    plt.legend(["Capienza Totale(mq)", "Occupati(mq)"])
     plt.xlabel('Data di partenza')
+    plt.legend()
+    ax = fig.gca()  # get the current axis
+
+    for i, p in enumerate(ax.get_lines()):  # this is the loop to change Labels and colors
+        if p.get_label() in list_of_ship_name[:i]:  # check for Name already exists
+            idx = list_of_ship_name.index(p.get_label())  # find ist index
+            p.set_c(ax.get_lines()[idx].get_c())  # set color
+            p.set_label('_' + p.get_label())  # hide label in auto-legend
+    plt.legend()
     plt.xticks(rotation=45)
     plt.ylabel('Mq')
     plt.grid()

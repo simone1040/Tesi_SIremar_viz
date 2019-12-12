@@ -118,7 +118,20 @@
          <widget class="QComboBox" name="tratta_combobox"/>
         </item>
         <item>
-         <widget class="QComboBox" name="nave_combobox"/>
+         <widget class="QListWidget" name="listWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>60</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QDateEdit" name="data_partenza_selector"/>
