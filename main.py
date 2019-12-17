@@ -4,6 +4,7 @@ import sys
 from utils.Costants import *
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from core.App import MyApp
+from utils.CaricoManager import compute_dataframe_tot_mq_occupati
 from utils.CaricoManager import getMaxCaricoNave
 
 if __name__ == "__main__":
@@ -24,6 +25,7 @@ if __name__ == "__main__":
     else:
         sys.exit(1)
 
+    DATAFRAME_APPLICATION["dataframe_tot_mq_occupati"] = compute_dataframe_tot_mq_occupati()
     my_app = MyApp()
     MainWindow = QMainWindow()
     my_app.init_UI(MainWindow)

@@ -15,5 +15,6 @@ PLACEHOLDER_PATH = "./assets/app_images/placeholder.jpg"
 TEMP_IMAGE_STATISTICS = "./assets/app_images/statistics.jpg"
 DATAFRAME_APPLICATION = {
     "dataframe_prenotazioni": None,
-    "dataframe_max_mq_occupati": None
+    "dataframe_max_mq_occupati": None,
+    "dataframe_tot_mq_occupati": None
 }

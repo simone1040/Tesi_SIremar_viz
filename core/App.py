@@ -15,8 +15,8 @@ class MyApp(QWidget):
         #Inizializzazione delle variabili che servono a creare il grafico
         data_corrente = QDate.currentDate()
         self.data = {
-            "booking_ticket_departure_timestamp": data_corrente,
-            "booking_ticket_arrival_timestamp": data_corrente,
+            "booking_ticket_departure_timestamp": data_corrente.toString("yyyy-MM-dd"),
+            "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "ship": [],
             "departure_port_code": "",
             "arrival_port_code": ""
@@ -219,8 +219,8 @@ class MyApp(QWidget):
     def function_clear_filter(self):
         data_corrente = QDate.currentDate()
         self.data = {
-            "booking_ticket_departure_timestamp": data_corrente,
-            "booking_ticket_arrival_timestamp": data_corrente,
+            "booking_ticket_departure_timestamp": data_corrente.toString("yyyy-MM-dd"),
+            "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "ship": [],
             "departure_port_code": "",
             "arrival_port_code": ""
@@ -266,7 +266,7 @@ class MyApp(QWidget):
         return date_edit
 
     def set_start_data(self, data):
-        self.data["booking_ticket_departure_timestamp"] = data
+        self.data["booking_ticket_departure_timestamp"] = data.toString("yyyy-MM-dd")
 
     def set_end_data(self, data):
-        self.data["booking_ticket_arrival_timestamp"] = data
+        self.data["booking_ticket_arrival_timestamp"] = data.toString("yyyy-MM-dd")
