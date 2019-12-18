@@ -1,59 +1,8 @@
-from utils.SQLManager import SQLManager
+from models.CaricoModel import *
 from matplotlib import pyplot as plt
 from utils.Costants import *
 import pandas as pd
 
-def getMaxCaricoNave():
-    sql = "SELECT tab_metri_garage_navi.*,ship_name,ship_code " \
-          "FROM tab_metri_garage_navi " \
-          "INNER JOIN tab_ship on tab_metri_garage_navi.ship_id = tab_ship.ship_id " \
-          "order by ship_id"
-    df = SQLManager.get_istance().execute_query(string_sql=sql)
-    return df
-
-def get_distinct_tratte():
-    sql = "SELECT booking_ticket_departure_port_code,booking_ticket_arrival_port_code " \
-          "FROM tab_booking_ticket " \
-          "GROUP BY booking_ticket_departure_port_code,booking_ticket_arrival_port_code "
-    df = SQLManager.get_istance().execute_query(string_sql=sql)
-    return df
-
-def get_distinct_ship():
-    sql = "SELECT ship_code,ship_name " \
-          "FROM tab_ship " \
-          "ORDER BY ship_name"
-    df = SQLManager.get_istance().execute_query(string_sql=sql)
-    return df
-
-def get_ship_name(ship_code):
-    sql = "SELECT ship_name " \
-          "FROM tab_ship " \
-          "WHERE ship_code='{}'" \
-          "ORDER BY ship_code".format(ship_code)
-    df = SQLManager.get_istance().execute_query(string_sql=sql)
-    if not df.empty:
-        return df["ship_name"].iloc[0]
-    else:
-        return ship_code
-
-def from_port_code_get_name(port_code):
-    sql = "SELECT port_name " \
-          "FROM tab_port " \
-          "WHERE port_code='{}' ".format(port_code)
-    df = SQLManager.get_istance().execute_query(string_sql=sql)
-    port_name = df["port_name"].iloc[0]
-    return port_name
-
-#Tramite la route Cappelli prendo indistintamente solo i primi viaggi per il range selezionato
-def get_distinct_first_trip(data_inizio,data_fine):
-    sql = "SELECT route_cappelli_trip_code,route_cappelli_departure_timestamp,route_cappelli_next_route_code," \
-          "route_cappelli_departure_port_code,route_cappelli_arrival_port_code,route_cappelli_ship_code " \
-          "FROM tab_route_cappelli " \
-          "WHERE route_cappelli_progressive = 1 " \
-          "AND DATE(route_cappelli_departure_timestamp) >= '{}' " \
-          "AND DATE(route_cappelli_departure_timestamp) <= '{}' ".format(data_inizio, data_fine)
-    df = SQLManager.get_istance().execute_query(string_sql=sql)
-    return df
 
 def compute_dataframe_from_route_cappelli(dataframe_route_cappelli,filter_dataframe):
     final_dataframe = pd.DataFrame(columns=["booking_ticket_departure_timestamp", "ship_code", "departure_port_name", "arrival_port_name",
@@ -67,7 +16,32 @@ def compute_dataframe_from_route_cappelli(dataframe_route_cappelli,filter_datafr
                  "metri_garage_navi_spazio_totale"])["tot_mq_occupati"].sum().reset_index(name='tot_mq_occupati')
             if not row.empty:
                 final_dataframe = final_dataframe.append(row, ignore_index=True)
+        else: #caso in cui non è viaggio finale
+            porto_partenza = row["route_cappelli_ship_code"]
+            #Partendo dal primo viaggio, prendo l'intero e faccio i calcoli
+            complete_trip = from_first_trip_get_all_lines(row)
+            print(complete_trip.head(10))
+            exit(1)
+
+            #TODO VEDERE TUTTI I BIGLIETTI PER CUI SI HA ARRIVAL NEL PORTO DEL VIAGGIO
     return final_dataframe
+
+#Metodo che prende dalla route cappelli l'intero viaggio partendo dal primo
+def from_first_trip_get_all_lines(first_trip):
+    next_route_code = first_trip["route_cappelli_next_route_code"]
+    final_route_cappelli_dataframe = pd.DataFrame(
+        columns=["route_cappelli_trip_code","route_cappelli_departure_timestamp","route_cappelli_route_code","route_cappelli_next_route_code",
+                 "route_cappelli_departure_port_code","route_cappelli_arrival_port_code","route_cappelli_ship_code"])
+    #Appendo la prima riga che mi passano
+    final_route_cappelli_dataframe = final_route_cappelli_dataframe.append(first_trip, ignore_index=True)
+    while next_route_code != "":
+        next_trip = get_trip_from_route_code(next_route_code)
+        if not next_trip.empty:
+            final_route_cappelli_dataframe = final_route_cappelli_dataframe.append(next_trip, ignore_index=True)
+            next_route_code = next_trip["route_cappelli_next_route_code"].replace(" ", "")
+        else:
+            next_route_code = ""
+    return final_route_cappelli_dataframe
 
 def compute_dataframe_tot_mq_occupati():
     return pd.merge(DATAFRAME_APPLICATION["dataframe_prenotazioni"], DATAFRAME_APPLICATION["dataframe_max_mq_occupati"], how="inner",

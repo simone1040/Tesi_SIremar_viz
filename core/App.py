@@ -1,9 +1,9 @@
 from easygui import msgbox
-
-from utils import CaricoManager
+from utils.MyLogger import writeLog
+from controllers import CaricoManager
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
-from utils.CaricoManager import *
+from controllers.CaricoManager import *
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
                              QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget)
 from utils.UtilsFunction import FigureToQPixmap
@@ -234,12 +234,15 @@ class MyApp(QWidget):
     def set_ship(self, ship):
         ship = ship.text()
         ship_code, ship_name = ship.split("-")
+        writeLog(levelLog.INFO, "App", "Nave selezionata: {}".format(ship))
         if ship_code in self.data["ship"]:
             self.data["ship"].remove(ship_code)
         else:
             self.data["ship"].append(ship_code)
+        writeLog(levelLog.INFO,"App","Navi rimanenti: {}".format(self.data["ship"]))
 
     def set_tratta(self, text):
+        writeLog(levelLog.INFO, "App", "Tratta selezionata: {}".format(text))
         port = text.split("-")
         if(len(port) == 2):
             self.data["departure_port_code"], self.data["arrival_port_code"] = port
@@ -266,7 +269,9 @@ class MyApp(QWidget):
         return date_edit
 
     def set_start_data(self, data):
+        writeLog(levelLog.INFO, "App", "Data inizio selezionata: {}".format(data.toString("yyyy-MM-dd")))
         self.data["booking_ticket_departure_timestamp"] = data.toString("yyyy-MM-dd")
 
     def set_end_data(self, data):
+        writeLog(levelLog.INFO, "App", "Data fine selezionata: {}".format(data.toString("yyyy-MM-dd")))
         self.data["booking_ticket_arrival_timestamp"] = data.toString("yyyy-MM-dd")

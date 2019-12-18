@@ -1,11 +1,12 @@
 from pyspark.shell import spark
 from pyspark.sql import SQLContext
 import sys
+from utils.MyLogger import writeLog
 from utils.Costants import *
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from core.App import MyApp
-from utils.CaricoManager import compute_dataframe_tot_mq_occupati
-from utils.CaricoManager import getMaxCaricoNave
+from controllers.CaricoManager import compute_dataframe_tot_mq_occupati
+from controllers.CaricoManager import getMaxCaricoNave
 
 if __name__ == "__main__":
     sc = spark.sparkContext
@@ -14,18 +15,29 @@ if __name__ == "__main__":
     screen = app.screens()[0]
     IMAGE_INFO["dpi_monitor"] = screen.physicalDotsPerInch()
     database_max_mq = getMaxCaricoNave()
-
-    if(not database_max_mq.empty):
+    if not database_max_mq.empty:
         DATAFRAME_APPLICATION["dataframe_max_mq_occupati"] = database_max_mq
+        writeLog(levelLog.INFO, "main", "dataframe max mq occupati caricato correttamente")
     else:
-        sys.exit(1)
-    dataframe_prenotazioni = sqlContext.read.parquet(PARQUET_FILE_PRENOTATION).toPandas()
-    if(not dataframe_prenotazioni.empty):
-        DATAFRAME_APPLICATION["dataframe_prenotazioni"] = dataframe_prenotazioni
-    else:
+        writeLog(levelLog.ERROR, "main", "dataframe max mq occupati non trovato")
         sys.exit(1)
 
-    DATAFRAME_APPLICATION["dataframe_tot_mq_occupati"] = compute_dataframe_tot_mq_occupati()
+    dataframe_prenotazioni = sqlContext.read.parquet(PARQUET_FILE_PRENOTATION).toPandas()
+    if not dataframe_prenotazioni.empty:
+        DATAFRAME_APPLICATION["dataframe_prenotazioni"] = dataframe_prenotazioni
+        writeLog(levelLog.INFO, "main", "dataframe prenotazioni caricato correttamente")
+    else:
+        writeLog(levelLog.ERROR, "main", "dataframe prenotazioni non trovato")
+        sys.exit(1)
+
+    dataframe_tot_mq_occupati = compute_dataframe_tot_mq_occupati()
+    if not dataframe_tot_mq_occupati.empty:
+        DATAFRAME_APPLICATION["dataframe_tot_mq_occupati"] = dataframe_tot_mq_occupati
+        writeLog(levelLog.INFO, "main", "dataframe tot mq occupati caricato correttamente")
+    else:
+        writeLog(levelLog.ERROR, "main", "dataframe tot mq occupati non trovato")
+        sys.exit(1)
+
     my_app = MyApp()
     MainWindow = QMainWindow()
     my_app.init_UI(MainWindow)
