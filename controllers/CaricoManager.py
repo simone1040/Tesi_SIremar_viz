@@ -14,24 +14,39 @@ def compute_dataframe_from_route_cappelli(dataframe_route_cappelli,filter_datafr
             row = filter_dataframe[departure_data & ship_code].groupby(
                 ["booking_ticket_departure_timestamp", "ship_code", "departure_port_name", "arrival_port_name",
                  "metri_garage_navi_spazio_totale"])["tot_mq_occupati"].sum().reset_index(name='tot_mq_occupati')
-            if not row.empty:
-                final_dataframe = final_dataframe.append(row, ignore_index=True)
         else: #caso in cui non è viaggio finale
-            porto_partenza = row["route_cappelli_ship_code"]
-            #Partendo dal primo viaggio, prendo l'intero e faccio i calcoli
+            #Prendo l'intero viaggio che ha per primo viaggio Row
             complete_trip = from_first_trip_get_all_lines(row)
-            print(complete_trip.head(10))
-            exit(1)
-
-            #TODO VEDERE TUTTI I BIGLIETTI PER CUI SI HA ARRIVAL NEL PORTO DEL VIAGGIO
+            last_tot_mq_occupati = 0
+            #TODO DA RIVEDERE PERCHÈ NON FUNZIONA
+            for index, trip in complete_trip.iterrows():
+                porto_partenza = filter_dataframe["departure_port_name"] == trip["route_cappelli_departure_port_code"]
+                departure_data = filter_dataframe["booking_ticket_departure_timestamp"] == trip["route_cappelli_departure_timestamp"]
+                ship_code = trip["route_cappelli_ship_code"] == filter_dataframe["ship_code"]
+                row = filter_dataframe[departure_data & porto_partenza & ship_code].groupby(
+                        ["booking_ticket_departure_timestamp", "ship_code", "departure_port_name", "arrival_port_name",
+                        "metri_garage_navi_spazio_totale"])["tot_mq_occupati"].sum().reset_index(name='tot_mq_occupati')
+                if index != 0:
+                    porto_arrivo = filter_dataframe["arrival_port_name"] == trip["route_cappelli_arrival_port_code"]
+                    ship_code = trip["route_cappelli_ship_code"] == filter_dataframe["ship_code"]
+                    trip_code = trip["route_cappelli_trip_code"] == filter_dataframe["ticket_trip_code"]
+                    data_arrival = filter_dataframe["booking_ticket_departure_timestamp"] < trip["route_cappelli_departure_timestamp"]
+                    row_scesi = filter_dataframe[porto_arrivo & ship_code & trip_code & data_arrival].groupby(
+                        ["booking_ticket_departure_timestamp", "ship_code", "departure_port_name", "arrival_port_name",
+                         "metri_garage_navi_spazio_totale"])["tot_mq_occupati"].sum().reset_index(
+                        name='tot_mq_occupati')
+                    row["tot_mq_occupati"] = row["tot_mq_occupati"] + last_tot_mq_occupati - row_scesi["tot_mq_occupati"]
+                    last_tot_mq_occupati = row["tot_mq_occupati"]
+        if not row.empty:
+            final_dataframe = final_dataframe.append(row, ignore_index=True)
     return final_dataframe
 
 #Metodo che prende dalla route cappelli l'intero viaggio partendo dal primo
 def from_first_trip_get_all_lines(first_trip):
     next_route_code = first_trip["route_cappelli_next_route_code"]
     final_route_cappelli_dataframe = pd.DataFrame(
-        columns=["route_cappelli_trip_code","route_cappelli_departure_timestamp","route_cappelli_route_code","route_cappelli_next_route_code",
-                 "route_cappelli_departure_port_code","route_cappelli_arrival_port_code","route_cappelli_ship_code"])
+        columns=["route_cappelli_trip_code", "route_cappelli_departure_timestamp", "route_cappelli_route_code", "route_cappelli_next_route_code",
+                 "route_cappelli_departure_port_code", "route_cappelli_arrival_port_code", "route_cappelli_ship_code"])
     #Appendo la prima riga che mi passano
     final_route_cappelli_dataframe = final_route_cappelli_dataframe.append(first_trip, ignore_index=True)
     while next_route_code != "":
