@@ -8,6 +8,18 @@ def getMaxCaricoNave():
     df = SQLManager.get_istance().execute_query(string_sql=sql)
     return df
 
+def getMaxCaricoForShip(ship_code):
+    sql = "SELECT metri_garage_navi_spazio_totale " \
+          "FROM tab_metri_garage_navi " \
+          "INNER JOIN tab_ship on tab_metri_garage_navi.ship_id = tab_ship.ship_id " \
+          "WHERE ship_code = '{}' ".format(ship_code)
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    if not df.empty:
+        return df["metri_garage_navi_spazio_totale"].iloc[0]
+    else:
+        return 0
+
+
 def get_distinct_tratte():
     sql = "SELECT booking_ticket_departure_port_code,booking_ticket_arrival_port_code " \
           "FROM tab_booking_ticket " \

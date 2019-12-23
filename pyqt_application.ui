@@ -289,6 +289,9 @@
        </spacer>
       </item>
       <item>
+       <layout class="QVBoxLayout" name="spinner_vertical_layout"/>
+      </item>
+      <item>
        <widget class="Line" name="bottom_separator_line">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

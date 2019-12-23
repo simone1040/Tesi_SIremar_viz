@@ -1,5 +1,9 @@
 from easygui import msgbox
+from matplotlib.figure import Figure
+
 from utils.MyLogger import writeLog
+from utils.PlotClass import PlotRunnable
+from core.QtWaitingSpinner import QtWaitingSpinner
 from controllers import CaricoManager
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
@@ -21,6 +25,7 @@ class MyApp(QWidget):
             "departure_port_code": "",
             "arrival_port_code": ""
         }
+        self.spinner = QtWaitingSpinner(self)
 
     def init_UI(self, MainWindow):
         #Inizializzazione dell'interfaccia grafica
@@ -104,8 +109,9 @@ class MyApp(QWidget):
         self.statistics_image.setPixmap(self.placeholder_image)
         self.statistics_image.setAlignment(Qt.AlignCenter)
         self.statistics_image.setObjectName("statistics_image")
+        self.verticalLayout.addWidget(self.spinner)
         self.verticalLayout.addWidget(self.statistics_image)
-        spacerItem8 = QSpacerItem(20,45, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        spacerItem8 = QSpacerItem(20,10, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem8)
         self.bottom_separator_layout = QHBoxLayout()
         self.bottom_separator_layout.setContentsMargins(-1, -1, -1, 5)
@@ -184,8 +190,14 @@ class MyApp(QWidget):
         if self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
         else:
-            figure = CaricoManager.image_statistics_filtered(self.data)
-            self.show_image(figure)
+            self.spinner.start()
+            runnable = PlotRunnable(self)
+            QThreadPool.globalInstance().start(runnable)
+
+    @pyqtSlot(Figure)
+    def stop_spinner(self, figure):
+        self.spinner.stop()
+        self.show_image(figure)
 
     def ship_filter_selectbox(self):
         cb = QListWidget(self.centralwidget)
