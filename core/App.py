@@ -9,7 +9,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
 from controllers.CaricoManager import *
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
-                             QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget)
+                             QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget, QStackedLayout)
 from utils.UtilsFunction import FigureToQPixmap
 
 
@@ -25,7 +25,7 @@ class MyApp(QWidget):
             "departure_port_code": "",
             "arrival_port_code": ""
         }
-        self.spinner = QtWaitingSpinner(self)
+
 
     def init_UI(self, MainWindow):
         #Inizializzazione dell'interfaccia grafica
@@ -109,8 +109,11 @@ class MyApp(QWidget):
         self.statistics_image.setPixmap(self.placeholder_image)
         self.statistics_image.setAlignment(Qt.AlignCenter)
         self.statistics_image.setObjectName("statistics_image")
-        self.verticalLayout.addWidget(self.spinner)
-        self.verticalLayout.addWidget(self.statistics_image)
+        self.spinner = QtWaitingSpinner(self)
+        self.stack = QStackedLayout()
+        self.stack.addWidget(self.statistics_image)
+        self.stack.addWidget(self.spinner)
+        self.verticalLayout.addLayout(self.stack)
         spacerItem8 = QSpacerItem(20,10, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem8)
         self.bottom_separator_layout = QHBoxLayout()
@@ -195,9 +198,15 @@ class MyApp(QWidget):
             QThreadPool.globalInstance().start(runnable)
 
     @pyqtSlot(Figure)
-    def stop_spinner(self, figure):
+    def set_image_carico(self, figure):
         self.spinner.stop()
         self.show_image(figure)
+
+    @pyqtSlot(str)
+    def error_cargo_not_found(self,text):
+        self.spinner.stop()
+        msgbox(text)
+
 
     def ship_filter_selectbox(self):
         cb = QListWidget(self.centralwidget)

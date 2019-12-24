@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 
 
 class QtWaitingSpinner(QWidget):
-    mColor = QColor(QColor(81, 4, 71))
+    mColor = QColor(QColor(0, 0, 0))
     mRoundness = 70
     mMinimumTrailOpacity = 15
     mTrailFadePercentage = 70.0
