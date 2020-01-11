@@ -1,17 +1,14 @@
 from easygui import msgbox
 from matplotlib.figure import Figure
-
-from utils.MyLogger import writeLog
 from utils.PlotClass import PlotRunnable
 from core.QtWaitingSpinner import QtWaitingSpinner
-from controllers import CaricoManager
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
 from controllers.CaricoManager import *
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
                              QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget, QStackedLayout)
 from utils.UtilsFunction import FigureToQPixmap
-
+from utils.MyLogger import writeLog
 
 class MyApp(QWidget):
     def __init__(self):

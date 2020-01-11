@@ -5,7 +5,6 @@ from utils.MyLogger import writeLog
 from utils.Costants import *
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from core.App import MyApp
-from controllers.CaricoManager import compute_dataframe_tot_mq_occupati
 from controllers.CaricoManager import getMaxCaricoNave
 
 if __name__ == "__main__":
@@ -28,14 +27,6 @@ if __name__ == "__main__":
         writeLog(levelLog.INFO, "main", "dataframe prenotazioni caricato correttamente")
     else:
         writeLog(levelLog.ERROR, "main", "dataframe prenotazioni non trovato")
-        sys.exit(1)
-
-    dataframe_tot_mq_occupati = compute_dataframe_tot_mq_occupati()
-    if not dataframe_tot_mq_occupati.empty:
-        DATAFRAME_APPLICATION["dataframe_tot_mq_occupati"] = dataframe_tot_mq_occupati
-        writeLog(levelLog.INFO, "main", "dataframe tot mq occupati caricato correttamente")
-    else:
-        writeLog(levelLog.ERROR, "main", "dataframe tot mq occupati non trovato")
         sys.exit(1)
 
     my_app = MyApp()
