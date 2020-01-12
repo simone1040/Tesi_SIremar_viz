@@ -29,9 +29,11 @@ def image_statistics_filtered(filter):
             if key == "booking_ticket_arrival_timestamp":
                 booking_ticket_arrival_timestamp = filter["booking_ticket_arrival_timestamp"]
                 dataframe_to_plot = dataframe_to_plot[dataframe_to_plot["booking_ticket_departure_timestamp"] <= booking_ticket_arrival_timestamp]
-
+    #Ordino le righe per il departure timestamp
+    dataframe_to_plot = dataframe_to_plot.sort_values(by = ["booking_ticket_departure_timestamp"])
     if not dataframe_to_plot.empty:
         fig = plt.figure(figsize=(IMAGE_WIDTH/IMAGE_INFO["dpi_monitor"], IMAGE_HEIGHT/IMAGE_INFO["dpi_monitor"]), dpi=IMAGE_INFO["dpi_monitor"])
+        dataframe_to_plot["booking_ticket_departure_timestamp"] = dataframe_to_plot["booking_ticket_departure_timestamp"].apply(lambda x: x.split(" ")[0])
         for values in dataframe_to_plot.ship_code.unique():
             #INIZIO DATAFRAME PER IL LIMITE CHE COSI PRENDE L'INTERO GRAFICO
             dataframe_lim = pd.DataFrame(dataframe_to_plot.booking_ticket_departure_timestamp.unique(),columns =['booking_ticket_departure_timestamp'])
@@ -45,22 +47,37 @@ def image_statistics_filtered(filter):
             #INIZIO PLOT DEL LIMITE E DEI PUNTI
             plt.plot(dataframe_lim["booking_ticket_departure_timestamp"],
                      dataframe_lim["metri_garage_navi_spazio_totale"],label=ship_name)
-            """
+
             plt.plot(dataframe_to_plot[dataframe_to_plot["ship_code"] == values]["booking_ticket_departure_timestamp"],
-                 dataframe_to_plot[dataframe_to_plot["ship_code"] == values]["tot_mq_occupati"], 'o',label=ship_name)"""
+                 dataframe_to_plot[dataframe_to_plot["ship_code"] == values]["tot_mq_occupati"], 'o',label=ship_name)
             #FINE
+
         plt.title("Mq occupati da imbarchi dal " + booking_ticket_departure_timestamp + " al " + booking_ticket_arrival_timestamp, loc="center")
         plt.xlabel('Data di partenza')
         plt.legend()
         ax = fig.gca()  # get the current axis
-
         for i, p in enumerate(ax.get_lines()):  # this is the loop to change Labels and colors
             if p.get_label() in list_of_ship_name[:i]:  # check for Name already exists
                 idx = list_of_ship_name.index(p.get_label())  # find ist index
                 p.set_c(ax.get_lines()[idx].get_c())  # set color
                 p.set_label('_' + p.get_label())  # hide label in auto-legend
+        fig.canvas.draw()
+        label_month = ""
+        labels = []
+        for n, label in enumerate(ax.xaxis.get_ticklabels()):
+            text = label.get_text()
+            exploded_text = text.split("-")
+            month = str(exploded_text[1])
+            if month == "12":
+                month = "00"
+            if label_month == "":
+                label_month = month
+                labels.append(text)
+            elif label_month < month:
+                label_month = month
+                labels.append(text)
         plt.legend()
-        plt.xticks(rotation=15)
+        plt.xticks(labels,rotation=30)
         plt.ylabel('Mq')
         plt.grid()
         return fig
