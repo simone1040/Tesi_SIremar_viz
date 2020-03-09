@@ -20,7 +20,8 @@ class MyApp(QWidget):
             "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "ship": [],
             "departure_port_code": "",
-            "arrival_port_code": ""
+            "arrival_port_code": "",
+            "year_graphics": True #Checkbox anno
         }
 
 
@@ -84,6 +85,7 @@ class MyApp(QWidget):
                                     "     height: 20px;\n"
                                     "}")
         self.checkBox.setObjectName("checkBox")
+        self.checkBox.stateChanged.connect(self.set_checkbox_year_status)
         self.horizontal_filter.addWidget(self.checkBox)
         spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontal_filter.addItem(spacerItem3)
@@ -261,6 +263,14 @@ class MyApp(QWidget):
         self.statistics_image.setPixmap(self.placeholder_image)
         self.data_partenza_selector.setDate(data_corrente)
         self.data_arrivo_selector.setDate(data_corrente)
+
+    def set_checkbox_year_status(self):
+        if self.checkBox.isChecked():
+            self.data["year_graphics"] = True
+            writeLog(levelLog.INFO, "App", "Filtro checked")
+        else:
+            self.data["year_graphics"] = False
+            writeLog(levelLog.INFO, "App", "Filtro unchecked")
 
     def set_ship(self, ship):
         ship = ship.text()
