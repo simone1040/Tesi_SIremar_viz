@@ -76,7 +76,6 @@ def build_image_to_show(dataframe_to_plot, filter):
     plt.legend()
     return fig, list_of_ship_name
 
-
 def get_label_month(ax):
     current_month = -1
     labels = []

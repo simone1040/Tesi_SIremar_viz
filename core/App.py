@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
 from controllers.CaricoManager import *
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
-                             QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget, QStackedLayout)
+                             QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget, QStackedLayout, QCheckBox)
 from utils.UtilsFunction import FigureToQPixmap
 from utils.MyLogger import writeLog
 
@@ -56,6 +56,9 @@ class MyApp(QWidget):
         self.label = QLabel(self.verticalLayoutWidget)
         self.label.setObjectName("label")
         self.horizontal_label.addWidget(self.label)
+        self.label_6 = QLabel(self.centralwidget)
+        self.label_6.setObjectName("label_6")
+        self.horizontal_label.addWidget(self.label_6)
         spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontal_label.addItem(spacerItem1)
         self.verticalLayout.addLayout(self.horizontal_label)
@@ -73,6 +76,15 @@ class MyApp(QWidget):
         self.horizontal_filter.addWidget(self.data_partenza_selector)
         self.data_arrivo_selector = self.end_data_selectbox()
         self.horizontal_filter.addWidget(self.data_arrivo_selector)
+        self.checkBox = QCheckBox(self.centralwidget)
+        self.checkBox.setText("")
+        self.checkBox.setChecked(True)
+        self.checkBox.setStyleSheet("QCheckBox::indicator {\n"
+                                    "     width: 20px;\n"
+                                    "     height: 20px;\n"
+                                    "}")
+        self.checkBox.setObjectName("checkBox")
+        self.horizontal_filter.addWidget(self.checkBox)
         spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontal_filter.addItem(spacerItem3)
         self.verticalLayout.addLayout(self.horizontal_filter)
@@ -162,6 +174,7 @@ class MyApp(QWidget):
         self.label_2.setText(_translate("MainWindow", "Tratta"))
         self.label_3.setText(_translate("MainWindow", "Nave"))
         self.label_4.setText(_translate("MainWindow", "Intervallo data partenza"))
+        self.label_6.setText(_translate("MainWindow", "Anno"))
         self.label.setText(_translate("MainWindow", "Intervallo data arrivo"))
         self.create_graphics.setText(_translate("MainWindow", "Genera grafico"))
         self.clear_filter.setText(_translate("MainWindow", "Azzera filtri"))
