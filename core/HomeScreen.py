@@ -6,12 +6,12 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
 from controllers.CaricoManager import *
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
-                             QSpacerItem, QFrame, QMenuBar, QGridLayout, QListWidget, QStackedLayout, QCheckBox)
+                             QSpacerItem, QFrame, QGridLayout, QListWidget, QStackedLayout, QCheckBox)
 from utils.UtilsFunction import FigureToQPixmap,createLabel
 from utils.MyLogger import writeLog
 
 class HomeScreen(QWidget):
-    def __init__(self,screenController):
+    def __init__(self, screenController):
         super().__init__()
         #Inizializzazione delle variabili che servono a creare il grafico
         self.screenController = screenController
@@ -24,12 +24,6 @@ class HomeScreen(QWidget):
             "arrival_port_code": "",
             "year_graphics": True #Checkbox anno
         }
-
-    def show_page(self):
-        self.centralwidget.show()
-
-    def hide_page(self):
-        self.centralwidget.hide()
 
     def go_to_home(self):
         self.screenController.change_screen(HOME_SCREEN)
@@ -113,26 +107,6 @@ class HomeScreen(QWidget):
         self.top_separator_layout.addItem(spacerItem7)
         self.verticalLayout.addLayout(self.top_separator_layout)
 
-    def menu_button(self):
-        self.layout_button_menu = QVBoxLayout()
-        self.layout_button_menu.setSpacing(15)
-        self.layout_button_menu.setObjectName("layout_button_menu")
-        spacerItem8 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.layout_button_menu.addItem(spacerItem8)
-        self.home_button = QPushButton(self.centralwidget)
-        self.home_button.setObjectName("pushButton_2")
-        self.home_button.clicked.connect(self.go_to_home)
-        self.home_button.setText("HOME")
-        self.layout_button_menu.addWidget(self.home_button)
-        self.analytics_button = QPushButton(self.centralwidget)
-        self.analytics_button.clicked.connect(self.go_to_analytics)
-        self.analytics_button.setObjectName("pushButton")
-        self.analytics_button.setText("ANALYTICS")
-        self.layout_button_menu.addWidget(self.analytics_button)
-        spacerItem9 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.layout_button_menu.addItem(spacerItem9)
-        self.body_layout.addLayout(self.layout_button_menu)
-
     def body(self):
         self.body_layout = QHBoxLayout()
         self.body_layout.setContentsMargins(-1, -1, -1, 0)
@@ -140,7 +114,7 @@ class HomeScreen(QWidget):
         self.body_layout.setObjectName("body_layout")
         spacerItem8 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.body_layout.addItem(spacerItem8)
-        self.menu_button()
+        self.body_layout.addLayout(self.screenController.left_menu_button())
         self.line = QFrame(self.centralwidget)
         self.line.setFrameShape(QFrame.VLine)
         self.line.setFrameShadow(QFrame.Sunken)
