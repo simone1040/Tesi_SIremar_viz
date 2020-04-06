@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWid
 from utils.UtilsFunction import FigureToQPixmap,createLabel
 from utils.MyLogger import writeLog
 
-class HomeScreen(QWidget):
+class AnalyticsScreen(QWidget):
     def __init__(self,screenController):
         super().__init__()
         #Inizializzazione delle variabili che servono a creare il grafico
@@ -122,7 +122,7 @@ class HomeScreen(QWidget):
         self.home_button = QPushButton(self.centralwidget)
         self.home_button.setObjectName("pushButton_2")
         self.home_button.clicked.connect(self.go_to_home)
-        self.home_button.setText("HOME")
+        self.home_button.setText("HOME2")
         self.layout_button_menu.addWidget(self.home_button)
         self.analytics_button = QPushButton(self.centralwidget)
         self.analytics_button.clicked.connect(self.go_to_analytics)
@@ -353,3 +353,4 @@ class HomeScreen(QWidget):
     def set_end_data(self, data):
         writeLog(levelLog.INFO, "App", "Data fine selezionata: {}".format(data.toString("yyyy-MM-dd")))
         self.data["booking_ticket_arrival_timestamp"] = data.toString("yyyy-MM-dd")
+

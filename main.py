@@ -4,7 +4,9 @@ import sys
 from utils.MyLogger import writeLog
 from utils.Costants import *
 from PyQt5.QtWidgets import QApplication, QMainWindow
+from core.ScreenController import ScreenController
 from core.HomeScreen import HomeScreen
+from core.AnalyticsScreen import AnalyticsScreen
 from controllers.CaricoManager import getMaxCaricoNave
 
 if __name__ == "__main__":
@@ -29,12 +31,9 @@ if __name__ == "__main__":
         writeLog(levelLog.ERROR, "main", "dataframe prenotazioni non trovato")
         sys.exit(1)
 
-    my_app = HomeScreen()
     MainWindow = QMainWindow()
-    my_app.init_UI(MainWindow)
-    MainWindow.show()
+    screen_Controller = ScreenController(MainWindow)
     sys.exit(app.exec_())
-
 
 
 

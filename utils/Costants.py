@@ -22,9 +22,13 @@ DATAFRAME_APPLICATION = {
     "dataframe_tot_mq_occupati": None
 }
 
+
 class levelLog(enum.Enum):
     DEBUG = 0
     INFO = 1
     WARNING = 2
     ERROR = 3
     CRITICAL = 4
+
+HOME_SCREEN = 0
+ANALYTICS_SCREEN = 1
