@@ -129,7 +129,6 @@ class HomeScreen(QWidget):
         self.spinner = QtWaitingSpinner(self)
         self.stack = QStackedLayout()
         self.stack.addWidget(self.statistics_image)
-        self.stack.addWidget(createLabel(self.verticalLayoutWidget, "label_tratta", "Tratta"))
         self.stack.addWidget(self.spinner)
         self.body_layout.addLayout(self.stack)
         self.verticalLayout.addLayout(self.body_layout)
@@ -213,7 +212,7 @@ class HomeScreen(QWidget):
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
         else:
             self.spinner.start()
-            self.stack.setCurrentIndex(2)
+            self.stack.setCurrentIndex(1)
             runnable = PlotRunnable(self)
             QThreadPool.globalInstance().start(runnable)
 
@@ -224,9 +223,10 @@ class HomeScreen(QWidget):
         self.show_image(figure)
 
     @pyqtSlot(str)
-    def error_cargo_not_found(self,text):
+    def error_cargo_not_found(self, text):
         self.spinner.stop()
         msgbox(text)
+        self.stack.setCurrentIndex(0)
 
 
     def ship_filter_selectbox(self):
