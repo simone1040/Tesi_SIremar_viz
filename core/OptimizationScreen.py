@@ -1,16 +1,13 @@
 from easygui import msgbox
-from matplotlib.figure import Figure
 from utils.PlotClass import PlotRunnable
-from core.QtWaitingSpinner import QtWaitingSpinner
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QPixmap
 from controllers.CaricoManager import *
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QComboBox, QDateEdit, QSizePolicy,
-                             QSpacerItem, QFrame, QGridLayout, QListWidget, QStackedLayout, QCheckBox)
-from utils.UtilsFunction import FigureToQPixmap,createLabel
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QDateEdit, QSizePolicy,
+                             QSpacerItem, QFrame, QGridLayout, QListWidget,QCheckBox, QPlainTextEdit)
+from utils.UtilsFunction import createLabel
 from utils.MyLogger import writeLog
 
-class HomeScreen(QWidget):
+class OptimizationScreen(QWidget):
     def __init__(self, screenController):
         super().__init__()
         #Inizializzazione delle variabili che servono a creare il grafico
@@ -32,7 +29,6 @@ class HomeScreen(QWidget):
         horizontal_label.setObjectName("horizontal_label")
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         horizontal_label.addItem(spacerItem)
-        horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_tratta", "Tratta"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_nave", "Nave"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_data_partenza", "Data partenza"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_data_arrivo", "Data arrivo"))
@@ -61,6 +57,8 @@ class HomeScreen(QWidget):
         self.horizontalButton.addWidget(self.create_graphics)
         self.clear_filter = self.clear_filter_search_data()
         self.horizontalButton.addWidget(self.clear_filter)
+        self.clear_text_area = self.button_clear_text_area()
+        self.horizontalButton.addWidget(self.clear_text_area)
         spacerItem5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalButton.addItem(spacerItem5)
         self.verticalLayout.addLayout(self.horizontalButton)
@@ -73,8 +71,6 @@ class HomeScreen(QWidget):
         self.horizontal_filter.setObjectName("horizontal_filter")
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontal_filter.addItem(spacerItem2)
-        self.tratta_combobox = self.tratta_filter_selectbox()
-        self.horizontal_filter.addWidget(self.tratta_combobox)
         self.nave_combobox = self.ship_filter_selectbox()
         self.horizontal_filter.addWidget(self.nave_combobox)
         self.data_partenza_selector = self.init_data_selectbox()
@@ -114,17 +110,11 @@ class HomeScreen(QWidget):
         self.line.setFrameShadow(QFrame.Sunken)
         self.line.setObjectName("line")
         self.body_layout.addWidget(self.line)
-        self.placeholder_image = QPixmap(PLACEHOLDER_PATH)
-        self.placeholder_image = self.placeholder_image.scaledToWidth(IMAGE_WIDTH)
-        self.statistics_image = QLabel(self.verticalLayoutWidget)
-        self.statistics_image.setPixmap(self.placeholder_image)
-        self.statistics_image.setAlignment(Qt.AlignCenter)
-        self.statistics_image.setObjectName("statistics_image")
-        self.spinner = QtWaitingSpinner(self)
-        self.stack = QStackedLayout()
-        self.stack.addWidget(self.statistics_image)
-        self.stack.addWidget(self.spinner)
-        self.body_layout.addLayout(self.stack)
+        self.text_area_optimization = QPlainTextEdit(self.centralwidget)
+        self.text_area_optimization.setMinimumSize(QSize(1000, 770))
+        self.text_area_optimization.setReadOnly(True)
+        self.text_area_optimization.setObjectName("text_area_optimization")
+        self.body_layout.addWidget(self.text_area_optimization)
         self.verticalLayout.addLayout(self.body_layout)
         spacerItem8 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem8)
@@ -185,42 +175,12 @@ class HomeScreen(QWidget):
         self.verticalLayout.addStretch()
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
-    def tratta_filter_selectbox(self):
-        cb = QComboBox(self.verticalLayoutWidget)
-        cb.setObjectName("tratta_combobox")
-        cb.view().setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        cb.setMaxVisibleItems(10)
-        cb.setStyleSheet("QComboBox { combobox-popup: 0; }")
-        #Funzione che deve essere effettuata quando cambia elemento nella lista
-        cb.currentTextChanged.connect(self.set_tratta)
-        dataframe = get_distinct_tratte()
-        #Primo elemento vuoto
-        cb.addItem("Nessuna tratta selezionata")
-        for index, row in dataframe.iterrows():
-            if(row["booking_ticket_departure_port_code"] != "" and row["booking_ticket_arrival_port_code"] != ""):
-                cb.addItem(row["booking_ticket_departure_port_code"]+"-"+row["booking_ticket_arrival_port_code"])
-        return cb
-
     def function_create_statistics(self):
         if self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
         else:
-            self.spinner.start()
-            self.stack.setCurrentIndex(1)
+            #TODO FUNZIONE CHE SCRIVERÀ SU TEXT-AREA
             runnable = PlotRunnable(self)
-            QThreadPool.globalInstance().start(runnable)
-
-    @pyqtSlot(Figure)
-    def set_image_carico(self, figure):
-        self.spinner.stop()
-        self.stack.setCurrentIndex(0)
-        self.show_image(figure)
-
-    @pyqtSlot(str)
-    def error_cargo_not_found(self, text):
-        self.spinner.stop()
-        msgbox(text)
-        self.stack.setCurrentIndex(0)
 
 
     def ship_filter_selectbox(self):
@@ -232,7 +192,7 @@ class HomeScreen(QWidget):
         cb.setSizePolicy(sizePolicy)
         cb.setMaximumSize(QSize(16777215, 60))
         cb.setObjectName("nave_combobox")
-        pb.setToolTip("Selezionare una o più navi da mostrare nel grafico dei carichi.")
+        cb.setToolTip("Selezionare una o più navi per effettuare l'ottimizzazione del carico.")
         cb.setSelectionMode(QListWidget.MultiSelection)
         cb.itemClicked.connect(self.set_ship)
         dataframe = get_distinct_ship()
@@ -250,9 +210,21 @@ class HomeScreen(QWidget):
     def create_statistics_push_button(self):
         pb = QPushButton(self.verticalLayoutWidget)
         pb.setLayoutDirection(Qt.LeftToRight)
-        pb.setText("Genera grafico")
+        pb.setText("Calcola Ottimizzazione")
+        pb.setToolTip("Procedura che cerca di individuare una nave che ottimizza il carico della nave selezionata.")
         pb.clicked.connect(self.function_create_statistics)
         pb.setObjectName("create_graphics")
+        return pb
+
+    def clear_text_area(self):
+        self.text_area_optimization.clear()
+
+    def button_clear_text_area(self):
+        pb = QPushButton(self.verticalLayoutWidget)
+        pb.setLayoutDirection(Qt.LeftToRight)
+        pb.setText("Azzera Area Testuale")
+        pb.clicked.connect(self.clear_text_area)
+        pb.setObjectName("clear_text_area")
         return pb
 
     def function_clear_filter(self):
@@ -265,8 +237,6 @@ class HomeScreen(QWidget):
             "arrival_port_code": ""
         }
         self.nave_combobox.clearSelection()
-        self.tratta_combobox.setCurrentIndex(0)
-        self.statistics_image.setPixmap(self.placeholder_image)
         self.data_partenza_selector.setDate(data_corrente)
         self.data_arrivo_selector.setDate(data_corrente)
 
@@ -287,19 +257,6 @@ class HomeScreen(QWidget):
         else:
             self.data["ship"].append(ship_code)
         writeLog(levelLog.INFO,"App","Navi rimanenti: {}".format(self.data["ship"]))
-
-    def set_tratta(self, text):
-        writeLog(levelLog.INFO, "App", "Tratta selezionata: {}".format(text))
-        port = text.split("-")
-        if(len(port) == 2):
-            self.data["departure_port_code"], self.data["arrival_port_code"] = port
-        else:
-            self.data["departure_port_code"] = self.data["arrival_port_code"] = ""
-
-    def show_image(self, figure):
-        image = FigureToQPixmap(figure)
-        image = image.scaledToWidth(IMAGE_WIDTH)
-        self.statistics_image.setPixmap(image)
 
     def init_data_selectbox(self):
         date_edit = QDateEdit(self.verticalLayoutWidget)

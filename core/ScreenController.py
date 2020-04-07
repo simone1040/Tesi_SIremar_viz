@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QStackedWidget, QVBoxLayout, QSpacerItem, QSizePolic
 
 from core.HomeScreen import HomeScreen
 from core.AnalyticsScreen import AnalyticsScreen
-from utils.Costants import HOME_SCREEN, ANALYTICS_SCREEN, WINDOW_WIDTH, WINDOW_HEIGHT
+from core.OptimizationScreen import OptimizationScreen
+from utils.Costants import HOME_SCREEN, ANALYTICS_SCREEN, WINDOW_WIDTH, WINDOW_HEIGHT,OPTIMIZATION_SCREEN
 
 
 class ScreenController:
@@ -15,17 +16,26 @@ class ScreenController:
         self.mainWindow.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.screen = {
             HOME_SCREEN: HomeScreen(self),
-            ANALYTICS_SCREEN: AnalyticsScreen(self)
+            ANALYTICS_SCREEN: AnalyticsScreen(self),
+            OPTIMIZATION_SCREEN: OptimizationScreen(self)
         }
         self.stack_widget = QStackedWidget(self.mainWindow)
-        self.screen[HOME_SCREEN].init_UI(self.mainWindow)
-        self.screen[ANALYTICS_SCREEN].init_UI(self.mainWindow)
-        self.stack_widget.addWidget(self.screen[HOME_SCREEN].centralwidget)
-        self.stack_widget.addWidget(self.screen[ANALYTICS_SCREEN].centralwidget)
+        self.initUserInterfaceScreen()
+        self.defineStackWidget()
         self.mainWindow.setCentralWidget(self.stack_widget)
         QMetaObject.connectSlotsByName(self.mainWindow)
         self.actual_screen = -1
         self.change_screen(HOME_SCREEN)
+
+    def initUserInterfaceScreen(self):
+        self.screen[HOME_SCREEN].init_UI(self.mainWindow)
+        self.screen[OPTIMIZATION_SCREEN].init_UI(self.mainWindow)
+        self.screen[ANALYTICS_SCREEN].init_UI(self.mainWindow)
+
+    def defineStackWidget(self):
+        self.stack_widget.addWidget(self.screen[HOME_SCREEN].centralwidget)
+        self.stack_widget.addWidget(self.screen[OPTIMIZATION_SCREEN].centralwidget)
+        self.stack_widget.addWidget(self.screen[ANALYTICS_SCREEN].centralwidget)
 
     def change_screen(self, screen_to_show):
         if self.actual_screen == -1:
@@ -46,6 +56,11 @@ class ScreenController:
         home_button.clicked.connect(lambda: self.change_screen(HOME_SCREEN))
         home_button.setText("HOME")
         layout_button_menu.addWidget(home_button)
+        optimization_button = QPushButton()
+        optimization_button.clicked.connect(lambda: self.change_screen(OPTIMIZATION_SCREEN))
+        optimization_button.setObjectName("pushButton")
+        optimization_button.setText("OTTIMIZZAZIONE CARICO")
+        layout_button_menu.addWidget(optimization_button)
         analytics_button = QPushButton()
         analytics_button.clicked.connect(lambda: self.change_screen(ANALYTICS_SCREEN))
         analytics_button.setObjectName("pushButton")
