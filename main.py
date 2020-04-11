@@ -5,8 +5,6 @@ from utils.MyLogger import writeLog
 from utils.Costants import *
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from core.ScreenController import ScreenController
-from core.HomeScreen import HomeScreen
-from core.AnalyticsScreen import AnalyticsScreen
 from controllers.CaricoManager import getMaxCaricoNave
 
 if __name__ == "__main__":
@@ -32,7 +30,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     MainWindow = QMainWindow()
-    screen_Controller = ScreenController(MainWindow)
+    screen_Controller = ScreenController.getInstance(mainWindow=MainWindow)
     sys.exit(app.exec_())
 
 

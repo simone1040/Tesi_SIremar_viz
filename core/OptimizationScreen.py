@@ -1,22 +1,29 @@
 from easygui import msgbox
-from utils.PlotClass import PlotRunnable
 from PyQt5.QtCore import *
 from controllers.CaricoManager import *
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QDateEdit, QSizePolicy,
+from controllers.OptimizationController import OptimizationController
+from PyQt5.QtWidgets import (QHBoxLayout,QPushButton, QVBoxLayout, QWidget, QDateEdit, QSizePolicy,
                              QSpacerItem, QFrame, QGridLayout, QListWidget,QCheckBox, QPlainTextEdit)
-from utils.UtilsFunction import createLabel
+from utils.UtilsFunction import createLabel,format_date_to_view
 from utils.MyLogger import writeLog
+from core.CommonWidget import footer
 
 class OptimizationScreen(QWidget):
+    __distinct_ship = None
+
     def __init__(self, screenController):
         super().__init__()
         #Inizializzazione delle variabili che servono a creare il grafico
         self.screenController = screenController
+        self.__destinct_ship = get_distinct_ship()
         data_corrente = QDate.currentDate()
         self.data = {
             "booking_ticket_departure_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
-            "ship": [],
+            "ship_code_to_optimize": [],
+            "ship_name_to_optimize": [],
+            "ship_code_selected": "",
+            "ship_name_selected": "",
             "departure_port_code": "",
             "arrival_port_code": "",
             "year_graphics": True #Checkbox anno
@@ -30,6 +37,7 @@ class OptimizationScreen(QWidget):
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         horizontal_label.addItem(spacerItem)
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_nave", "Nave"))
+        horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_nave", "Navi ottimizzabili"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_data_partenza", "Data partenza"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_data_arrivo", "Data arrivo"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_anno", "Anno"))
@@ -71,8 +79,10 @@ class OptimizationScreen(QWidget):
         self.horizontal_filter.setObjectName("horizontal_filter")
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontal_filter.addItem(spacerItem2)
-        self.nave_combobox = self.ship_filter_selectbox()
+        self.nave_combobox = self.ship_filter_selectbox_to_optimize()
         self.horizontal_filter.addWidget(self.nave_combobox)
+        self.navi_list_to_optimize = self.ship_filter_selectbox()
+        self.horizontal_filter.addWidget(self.navi_list_to_optimize)
         self.data_partenza_selector = self.init_data_selectbox()
         self.horizontal_filter.addWidget(self.data_partenza_selector)
         self.data_arrivo_selector = self.end_data_selectbox()
@@ -111,7 +121,7 @@ class OptimizationScreen(QWidget):
         self.line.setObjectName("line")
         self.body_layout.addWidget(self.line)
         self.text_area_optimization = QPlainTextEdit(self.centralwidget)
-        self.text_area_optimization.setMinimumSize(QSize(1000, 770))
+        self.text_area_optimization.setMinimumSize(QSize(1000, 763))
         self.text_area_optimization.setReadOnly(True)
         self.text_area_optimization.setObjectName("text_area_optimization")
         self.body_layout.addWidget(self.text_area_optimization)
@@ -132,31 +142,6 @@ class OptimizationScreen(QWidget):
         self.bottom_separator_layout.addItem(spacerItem7)
         self.verticalLayout.addLayout(self.bottom_separator_layout)
 
-    def footer(self):
-        footer_layout = QHBoxLayout()
-        footer_layout.setContentsMargins(-1, -1, -1, 5)
-        footer_layout.setSpacing(6)
-        footer_layout.setObjectName("footer_layout")
-        spacerItem10 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        footer_layout.addItem(spacerItem10)
-        label_product_by = QLabel(self.verticalLayoutWidget)
-        label_product_by.setObjectName("label_product_by")
-        label_product_by.setText("Copyright Simone Condorelli")
-        footer_layout.addWidget(label_product_by)
-        spacerItem11 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        footer_layout.addItem(spacerItem11)
-        label_5 = QLabel(self.verticalLayoutWidget)
-        label_5.setObjectName("label_5")
-        label_5.setText("Version :")
-        footer_layout.addWidget(label_5)
-        spacerItem12 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        footer_layout.addItem(spacerItem12)
-        label_version = QLabel(self.verticalLayoutWidget)
-        label_version.setObjectName("label_version")
-        label_version.setText(VERSION)
-        footer_layout.addWidget(label_version)
-        self.verticalLayout.addLayout(footer_layout)
-
     def init_UI(self, MainWindow):
         #Inizializzazione dell'interfaccia grafica
         self.centralwidget = QWidget(MainWindow)
@@ -171,18 +156,45 @@ class OptimizationScreen(QWidget):
         self.verticalLayout.setObjectName("verticalLayout")
         self.searchArea()
         self.body()
-        self.footer()
+        footer_layout = footer(self.verticalLayoutWidget)
+        self.verticalLayout.addLayout(footer_layout)
         self.verticalLayout.addStretch()
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
     def function_create_statistics(self):
         if self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
+        elif self.data["ship_code_selected"]  == "":
+            msgbox("Nessuna nave da ottimizzare scelta.")
+        elif len(self.data["ship_code_to_optimize"]) == 0:
+            msgbox("Lista di navi ottimizzabili non specificata.")
         else:
-            #TODO FUNZIONE CHE SCRIVERÀ SU TEXT-AREA
-            runnable = PlotRunnable(self)
+            self.writeToTextArea("Nave/i selezionata/e --> {}".format(self.data["ship_name_selected"]))
+            self.writeToTextArea("Inizio ricerca ottimizzazione carico per il periodo dal {} al {}".format(
+                format_date_to_view(self.data["booking_ticket_departure_timestamp"]), format_date_to_view(self.data["booking_ticket_arrival_timestamp"])))
+            msg = OptimizationController(self).optimize_carico()
+            msgbox(msg)
 
+    def writeToTextArea(self,text):
+        self.text_area_optimization.appendPlainText(text)
 
+    # SelectBox per la singola nave da ottimizzare
+    def ship_filter_selectbox_to_optimize(self):
+        cb = QListWidget(self.centralwidget)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred,QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(cb.sizePolicy().hasHeightForWidth())
+        cb.setSizePolicy(sizePolicy)
+        cb.setMaximumSize(QSize(16777215, 60))
+        cb.setObjectName("nave_combobox")
+        cb.setToolTip("Selezionare una nave per effettuare l'ottimizzazione del carico.")
+        cb.itemClicked.connect(self.set_ship)
+        for index, row in self.__destinct_ship.iterrows():
+            cb.addItem(row["ship_code"]+"-"+row["ship_name"])
+        return cb
+
+    #SelectBox multipla
     def ship_filter_selectbox(self):
         cb = QListWidget(self.centralwidget)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred,QSizePolicy.Expanding)
@@ -194,9 +206,8 @@ class OptimizationScreen(QWidget):
         cb.setObjectName("nave_combobox")
         cb.setToolTip("Selezionare una o più navi per effettuare l'ottimizzazione del carico.")
         cb.setSelectionMode(QListWidget.MultiSelection)
-        cb.itemClicked.connect(self.set_ship)
-        dataframe = get_distinct_ship()
-        for index, row in dataframe.iterrows():
+        cb.itemClicked.connect(self.set_list_ship_optimize)
+        for index, row in self.__destinct_ship.iterrows():
             cb.addItem(row["ship_code"]+"-"+row["ship_name"])
         return cb
 
@@ -232,9 +243,13 @@ class OptimizationScreen(QWidget):
         self.data = {
             "booking_ticket_departure_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
-            "ship": [],
+            "ship_code_to_optimize": [],
+            "ship_name_to_optimize": [],
+            "ship_code_selected": "",
+            "ship_name_selected": "",
             "departure_port_code": "",
-            "arrival_port_code": ""
+            "arrival_port_code": "",
+            "year_graphics": True  # Checkbox anno
         }
         self.nave_combobox.clearSelection()
         self.data_partenza_selector.setDate(data_corrente)
@@ -248,15 +263,38 @@ class OptimizationScreen(QWidget):
             self.data["year_graphics"] = False
             writeLog(levelLog.INFO, "App", "Filtro unchecked")
 
-    def set_ship(self, ship):
+    def set_list_ship_optimize(self, ship):
         ship = ship.text()
         ship_code, ship_name = ship.split("-")
         writeLog(levelLog.INFO, "App", "Nave selezionata: {}".format(ship))
-        if ship_code in self.data["ship"]:
-            self.data["ship"].remove(ship_code)
+        if ship_code in self.data["ship_code_to_optimize"]:
+            self.data["ship_code_to_optimize"].remove(ship_code)
+            self.data["ship_name_to_optimize"].remove(ship_name)
         else:
-            self.data["ship"].append(ship_code)
-        writeLog(levelLog.INFO,"App","Navi rimanenti: {}".format(self.data["ship"]))
+            self.data["ship_code_to_optimize"].append(ship_code)
+            self.data["ship_name_to_optimize"].append(ship_name)
+        writeLog(levelLog.INFO, "App", "Range navi da ottimizzare: {}".format(self.data["ship_code_to_optimize"]))
+
+    #Funzione che aggiorna la combobox delle navi selezionabili
+    def update_optimize_combobox(self,ship_code):
+        self.data["ship_code_to_optimize"] = []
+        self.data["ship_name_to_optimize"] = []
+        self.navi_list_to_optimize.clear()
+        for index, row in self.__destinct_ship.iterrows():
+            if row["ship_code"] != ship_code:
+                self.navi_list_to_optimize.addItem(row["ship_code"]+"-"+row["ship_name"])
+
+    def set_ship(self, ship):
+        ship = ship.text()
+        ship_code, ship_name = ship.split("-")
+        if self.data["ship_code_selected"] == ship_code:
+            self.data["ship_code_selected"] = ""
+            self.data["ship_name_selected"] = ""
+            self.update_optimize_combobox("")
+        else:
+            self.data["ship_code_selected"] = ship_code
+            self.data["ship_name_selected"] = ship_name
+            self.update_optimize_combobox(ship_code)
 
     def init_data_selectbox(self):
         date_edit = QDateEdit(self.verticalLayoutWidget)

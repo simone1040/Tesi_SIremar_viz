@@ -142,7 +142,6 @@ def get_label_x_axis(ax, filter_ship):
         labels = get_label_without_year(ax)
     return labels
 
-
 def set_fig_properties(labels):
     plt.legend()
     plt.xticks(labels, rotation=30)

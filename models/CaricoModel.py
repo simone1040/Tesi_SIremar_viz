@@ -19,7 +19,6 @@ def getMaxCaricoForShip(ship_code):
     else:
         return 0
 
-
 def get_distinct_tratte():
     sql = "SELECT booking_ticket_departure_port_code,booking_ticket_arrival_port_code " \
           "FROM tab_booking_ticket " \

@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWid
                              QSpacerItem, QFrame, QGridLayout, QListWidget, QStackedLayout, QCheckBox)
 from utils.UtilsFunction import FigureToQPixmap,createLabel
 from utils.MyLogger import writeLog
+from core.CommonWidget import footer
 
 class HomeScreen(QWidget):
     def __init__(self, screenController):
@@ -142,31 +143,6 @@ class HomeScreen(QWidget):
         self.bottom_separator_layout.addItem(spacerItem7)
         self.verticalLayout.addLayout(self.bottom_separator_layout)
 
-    def footer(self):
-        footer_layout = QHBoxLayout()
-        footer_layout.setContentsMargins(-1, -1, -1, 5)
-        footer_layout.setSpacing(6)
-        footer_layout.setObjectName("footer_layout")
-        spacerItem10 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        footer_layout.addItem(spacerItem10)
-        label_product_by = QLabel(self.verticalLayoutWidget)
-        label_product_by.setObjectName("label_product_by")
-        label_product_by.setText("Copyright Simone Condorelli")
-        footer_layout.addWidget(label_product_by)
-        spacerItem11 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        footer_layout.addItem(spacerItem11)
-        label_5 = QLabel(self.verticalLayoutWidget)
-        label_5.setObjectName("label_5")
-        label_5.setText("Version :")
-        footer_layout.addWidget(label_5)
-        spacerItem12 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        footer_layout.addItem(spacerItem12)
-        label_version = QLabel(self.verticalLayoutWidget)
-        label_version.setObjectName("label_version")
-        label_version.setText(VERSION)
-        footer_layout.addWidget(label_version)
-        self.verticalLayout.addLayout(footer_layout)
-
     def init_UI(self, MainWindow):
         #Inizializzazione dell'interfaccia grafica
         self.centralwidget = QWidget(MainWindow)
@@ -181,7 +157,8 @@ class HomeScreen(QWidget):
         self.verticalLayout.setObjectName("verticalLayout")
         self.searchArea()
         self.body()
-        self.footer()
+        footer_layout = footer(self.verticalLayoutWidget)
+        self.verticalLayout.addLayout(footer_layout)
         self.verticalLayout.addStretch()
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
@@ -232,7 +209,7 @@ class HomeScreen(QWidget):
         cb.setSizePolicy(sizePolicy)
         cb.setMaximumSize(QSize(16777215, 60))
         cb.setObjectName("nave_combobox")
-        pb.setToolTip("Selezionare una o più navi da mostrare nel grafico dei carichi.")
+        cb.setToolTip("Selezionare una o più navi da mostrare nel grafico dei carichi.")
         cb.setSelectionMode(QListWidget.MultiSelection)
         cb.itemClicked.connect(self.set_ship)
         dataframe = get_distinct_ship()

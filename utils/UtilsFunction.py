@@ -21,3 +21,12 @@ def get_dataframe_data_to_show():
     return pd.DataFrame(columns=["booking_ticket_departure_timestamp", "ship_code", "departure_port_name", "arrival_port_name",
                  "metri_garage_navi_spazio_totale","tot_mq_occupati"])
 
+def format_date_to_view(data):
+    temp = data.split(" ")
+    if len(temp) == 2:
+        anno, mese, giorno = temp[0].split("-")
+        toRet = "{}/{}/{} {}".format(giorno, mese, anno, temp[1])
+    else:
+        anno, mese, giorno = data.split("-")
+        toRet =  "{}/{}/{}".format(giorno, mese, anno)
+    return toRet
