@@ -22,14 +22,8 @@ class Ship:
     def getCapienzaMassima(self):
         return self.__capienza_massima
 
-    def getMaxCaricoRaggiunto(self):
-        return self.__max_carico_raggiunto
-
-    def setMaxCaricoRaggiunto(self,max_carico):
-        self.__max_carico_raggiunto = round(max_carico, 2)
-
     def getDeltaSpazioLibero(self):
-        return round(self.__capienza_massima - self.__max_carico_raggiunto,2)
+        return round(self.__capienza_massima - self.__infoImbarco.getTotMqOccupati(), 2)
 
     def getInfoImbarco(self):
         return self.__infoImbarco

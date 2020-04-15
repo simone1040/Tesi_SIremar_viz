@@ -8,7 +8,7 @@ class Imbarco:
         self.__departure_timestamp = imbarco["booking_ticket_departure_timestamp"]
         self.__departure_port_name = imbarco["departure_port_name"]
         self.__arrival_port_name = imbarco["arrival_port_name"]
-        self.__tot_mq_occupati = imbarco["tot_mq_occupati"]
+        self.__tot_mq_occupati = round(imbarco["tot_mq_occupati"], 2)
 
     def getDepartureTimestamp(self):
         return self.__departure_timestamp
