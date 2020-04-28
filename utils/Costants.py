@@ -22,6 +22,10 @@ DATAFRAME_APPLICATION = {
     "dataframe_tot_mq_occupati": None
 }
 
+#Costanti per colorare la tabella
+SHIP_TO_OPTIMIZE = 0
+OPTIMIZE = 1
+NO_OPTIMIZE = 2
 
 class levelLog(enum.Enum):
     DEBUG = 0

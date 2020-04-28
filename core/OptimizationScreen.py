@@ -1,10 +1,12 @@
+from PyQt5.QtGui import QColor
 from easygui import msgbox
 from PyQt5.QtCore import *
 from controllers.CaricoManager import *
 from controllers.OptimizationController import OptimizationController
-from PyQt5.QtWidgets import (QHBoxLayout,QPushButton, QVBoxLayout, QWidget, QDateEdit, QSizePolicy,
-                             QSpacerItem, QFrame, QGridLayout, QListWidget,QCheckBox, QPlainTextEdit)
-from utils.UtilsFunction import createLabel,format_date_to_view
+from PyQt5.QtWidgets import (QHBoxLayout, QPushButton, QVBoxLayout, QWidget, QDateEdit, QSizePolicy,
+                             QSpacerItem, QFrame, QGridLayout, QListWidget, QPlainTextEdit, QTableWidget,
+                             QHeaderView, QTableWidgetItem)
+from utils.UtilsFunction import createLabel, format_date_to_view
 from utils.MyLogger import writeLog
 from core.CommonWidget import footer
 
@@ -25,8 +27,7 @@ class OptimizationScreen(QWidget):
             "ship_code_selected": "",
             "ship_name_selected": "",
             "departure_port_code": "",
-            "arrival_port_code": "",
-            "year_graphics": True #Checkbox anno
+            "arrival_port_code": ""
         }
 
     def searchLabel(self):
@@ -40,21 +41,8 @@ class OptimizationScreen(QWidget):
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_nave", "Navi ottimizzabili"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_data_partenza", "Data partenza"))
         horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_data_arrivo", "Data arrivo"))
-        horizontal_label.addWidget(createLabel(self.verticalLayoutWidget, "label_anno", "Anno"))
         horizontal_label.addItem(spacerItem)
         self.verticalLayout.addLayout(horizontal_label)
-
-    def checkbox_anno(self):
-        checkBox = QCheckBox(self.centralwidget)
-        checkBox.setText("")
-        checkBox.setChecked(True)
-        checkBox.setStyleSheet("QCheckBox::indicator {\n"
-                                    "     width: 20px;\n"
-                                    "     height: 20px;\n"
-                                    "}")
-        checkBox.setObjectName("checkBox")
-        checkBox.stateChanged.connect(self.set_checkbox_year_status)
-        return checkBox
 
     def button_action(self):
         self.horizontalButton = QHBoxLayout()
@@ -87,8 +75,6 @@ class OptimizationScreen(QWidget):
         self.horizontal_filter.addWidget(self.data_partenza_selector)
         self.data_arrivo_selector = self.end_data_selectbox()
         self.horizontal_filter.addWidget(self.data_arrivo_selector)
-        self.checkBox = self.checkbox_anno()
-        self.horizontal_filter.addWidget(self.checkBox)
         spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontal_filter.addItem(spacerItem3)
         self.verticalLayout.addLayout(self.horizontal_filter)
@@ -107,6 +93,15 @@ class OptimizationScreen(QWidget):
         self.top_separator_layout.addItem(spacerItem7)
         self.verticalLayout.addLayout(self.top_separator_layout)
 
+    def table_widget(self):
+        tableWidget = QTableWidget(self.centralwidget)
+        tableWidget.setColumnCount(5)
+        tableWidget.setRowCount(0)
+        tableWidget.setHorizontalHeaderLabels(["Nave", "Mq nave", "Mq max occupati", "Spazio libero", "Ottimizza"])
+        tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        tableWidget.setObjectName("tableWidget")
+        return tableWidget
+
     def body(self):
         self.body_layout = QHBoxLayout()
         self.body_layout.setContentsMargins(-1, -1, -1, 0)
@@ -120,8 +115,10 @@ class OptimizationScreen(QWidget):
         self.line.setFrameShadow(QFrame.Sunken)
         self.line.setObjectName("line")
         self.body_layout.addWidget(self.line)
+        self.tableWidget = self.table_widget()
+        self.body_layout.addWidget(self.tableWidget)
         self.text_area_optimization = QPlainTextEdit(self.centralwidget)
-        self.text_area_optimization.setMinimumSize(QSize(1000, 763))
+        self.text_area_optimization.setMinimumSize(QSize(250, 763))
         self.text_area_optimization.setReadOnly(True)
         self.text_area_optimization.setObjectName("text_area_optimization")
         self.body_layout.addWidget(self.text_area_optimization)
@@ -164,7 +161,7 @@ class OptimizationScreen(QWidget):
     def function_create_statistics(self):
         if self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
-        elif self.data["ship_code_selected"]  == "":
+        elif self.data["ship_code_selected"] == "":
             msgbox("Nessuna nave da ottimizzare scelta.")
         elif len(self.data["ship_code_to_optimize"]) == 0:
             msgbox("Lista di navi ottimizzabili non specificata.")
@@ -172,10 +169,46 @@ class OptimizationScreen(QWidget):
             self.writeToTextArea("Nave/i selezionata/e --> {}".format(self.data["ship_name_selected"]))
             self.writeToTextArea("Inizio ricerca ottimizzazione carico per il periodo dal {} al {}".format(
                 format_date_to_view(self.data["booking_ticket_departure_timestamp"]), format_date_to_view(self.data["booking_ticket_arrival_timestamp"])))
-            msg = OptimizationController(self).optimize_carico()
-            msgbox(msg)
+            self.clearTable()
+            array_ship = OptimizationController(self).optimize_carico()
+            if len(array_ship) == 0:
+                msgbox("Nessun carico nel periodo selezionato")
+            else:
+                self.setElementInTable(array_ship)
 
-    def writeToTextArea(self,text):
+    def clearTable(self):
+        self.tableWidget.setRowCount(0)
+
+    def setColortoRow(self, rowIndex, color):
+        if color != None:
+            for j in range(self.tableWidget.columnCount()):
+                self.tableWidget.item(rowIndex, j).setBackground(color)
+
+    def setElementInTable(self, array_of_ship):
+        row_count = len(array_of_ship)
+        self.tableWidget.setRowCount(row_count)
+        for index, nave in zip(range(0, row_count), array_of_ship):
+            if nave.getOptimize() == OPTIMIZE:
+                color = QColor(0, 255, 0)
+                optimize = "SI"
+            elif nave.getOptimize() == NO_OPTIMIZE:
+                color = QColor(255, 0, 0)
+                optimize = "NO"
+            elif nave.getOptimize() == SHIP_TO_OPTIMIZE:
+                optimize = ""
+                color = None
+
+            self.tableWidget.setItem(index, 0, QTableWidgetItem(str(nave.getNaveName()))) #Nome nave
+            self.tableWidget.setItem(index, 1, QTableWidgetItem(str(nave.getCapienzaMassima()) + " mq")) #Mq nave
+            self.tableWidget.setItem(index, 2, QTableWidgetItem(str(nave.getInfoImbarco().getTotMqOccupati()) + " mq")) #max_mq_occupati
+            self.tableWidget.setItem(index, 3, QTableWidgetItem(str(nave.getDeltaSpazioLibero()) + " mq")) #spazio libero
+            self.tableWidget.setItem(index, 4, QTableWidgetItem(str(optimize))) #ottimizza
+            self.setColortoRow(index, color)
+
+
+
+
+    def writeToTextArea(self, text):
         self.text_area_optimization.appendPlainText(text)
 
     # SelectBox per la singola nave da ottimizzare
@@ -248,20 +281,13 @@ class OptimizationScreen(QWidget):
             "ship_code_selected": "",
             "ship_name_selected": "",
             "departure_port_code": "",
-            "arrival_port_code": "",
-            "year_graphics": True  # Checkbox anno
+            "arrival_port_code": ""
         }
+        self.clearTable()
         self.nave_combobox.clearSelection()
+        self.navi_list_to_optimize.clearSelection()
         self.data_partenza_selector.setDate(data_corrente)
         self.data_arrivo_selector.setDate(data_corrente)
-
-    def set_checkbox_year_status(self):
-        if self.checkBox.isChecked():
-            self.data["year_graphics"] = True
-            writeLog(levelLog.INFO, "App", "Filtro checked")
-        else:
-            self.data["year_graphics"] = False
-            writeLog(levelLog.INFO, "App", "Filtro unchecked")
 
     def set_list_ship_optimize(self, ship):
         ship = ship.text()

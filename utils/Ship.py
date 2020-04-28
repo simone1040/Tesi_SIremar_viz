@@ -1,11 +1,15 @@
 #Classe per le navi, dove tengo il loro max carico e la capienza
 from models.CaricoModel import getMaxCaricoForShip
+from utils.Costants import NO_OPTIMIZE
 from utils.Imbarco import Imbarco
 class Ship:
+
+
     __nave_code = ""
     __nave_name = ""
     __capienza_massima = 0
     __infoImbarco = None
+    __optimize = NO_OPTIMIZE
 
     def __init__(self, nave_code, nave_name, imbarco):
         self.__nave_code = nave_code
@@ -27,3 +31,9 @@ class Ship:
 
     def getInfoImbarco(self):
         return self.__infoImbarco
+
+    def getOptimize(self):
+        return self.__optimize
+
+    def setOptimize(self, opt):
+        self.__optimize = opt
