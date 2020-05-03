@@ -1,12 +1,12 @@
-from PyQt5.QtGui import QColor
 from easygui import msgbox
 from PyQt5.QtCore import *
+
+from controllers.AnalyticsController import AnalyticsController
 from controllers.CaricoManager import *
-from controllers.OptimizationController import OptimizationController
 from PyQt5.QtWidgets import (QHBoxLayout, QPushButton, QVBoxLayout, QWidget, QDateEdit, QSizePolicy,
                              QSpacerItem, QFrame, QGridLayout, QListWidget,QPlainTextEdit, QTableWidget,
                              QHeaderView, QTableWidgetItem, QComboBox)
-from utils.UtilsFunction import createLabel, format_date_to_view
+from utils.UtilsFunction import createLabel
 from utils.MyLogger import writeLog
 from core.CommonWidget import footer
 
@@ -17,13 +17,12 @@ class AnalyticsScreen(QWidget):
         super().__init__()
         #Inizializzazione delle variabili che servono a creare il grafico
         self.screenController = screenController
-        self.__destinct_ship = get_distinct_ship()
         data_corrente = QDate.currentDate()
         self.data = {
             "booking_ticket_departure_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
-            "ship_code_selected": "",
-            "ship_name_selected": "",
+            "ship_code_selected": [],
+            "ship_name_selected": [],
             "departure_port_code": "",
             "arrival_port_code": ""
         }
@@ -66,7 +65,10 @@ class AnalyticsScreen(QWidget):
                 self.popolateComboBoxShip()
         else:
             self.data["departure_port_code"] = self.data["arrival_port_code"] = ""
-            self.popolateComboBoxShip()
+            try:
+                self.popolateComboBoxShip()
+            except:
+                self.nave_combobox = None
 
     def tratta_filter_selectbox(self):
         cb = QComboBox(self.verticalLayoutWidget)
@@ -120,9 +122,9 @@ class AnalyticsScreen(QWidget):
 
     def table_widget(self):
         tableWidget = QTableWidget(self.centralwidget)
-        tableWidget.setColumnCount(5)
+        tableWidget.setColumnCount(2)
         tableWidget.setRowCount(0)
-        tableWidget.setHorizontalHeaderLabels(["Nave", "Mq nave", "Mq max occupati", "Spazio libero", "Ottimizza"])
+        tableWidget.setHorizontalHeaderLabels(["Nave", "Capienza Massima"])
         tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         tableWidget.setObjectName("tableWidget")
         return tableWidget
@@ -184,52 +186,40 @@ class AnalyticsScreen(QWidget):
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
     def function_create_statistics(self):
+        print(self.data["ship_code_selected"])
+        print(len(self.data["ship_code_selected"]))
         if self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
-        elif self.data["ship_code_selected"] == "":
-            msgbox("Nessuna nave da ottimizzare scelta.")
+        elif self.data["departure_port_code"] == "" or self.data["arrival_port_code"] == "":
+            msgbox("Nessuna tratta scelta.")
+        elif len(self.data["ship_code_selected"]) < 2:
+            msgbox("Scegliere almeno due navi per poter effettuare l'ottimizzazione.")
         else:
-            self.writeToTextArea("Nave/i selezionata/e --> {}".format(self.data["ship_name_selected"]))
-            self.writeToTextArea("Inizio ricerca ottimizzazione carico per il periodo dal {} al {}".format(
-                format_date_to_view(self.data["booking_ticket_departure_timestamp"]), format_date_to_view(self.data["booking_ticket_arrival_timestamp"])))
-            self.clearTable()
-            array_ship = OptimizationController(self).optimize_carico()
-            if len(array_ship) == 0:
-                msgbox("Nessun carico nel periodo selezionato")
-            else:
-                self.setElementInTable(array_ship)
+            self.writeToTextArea("Tratta selezionata --> {}-{}".format(self.data["departure_port_code"], self.data["arrival_port_code"]))
+            res = AnalyticsController(self).getStatistics()
 
     def clearTable(self):
         self.tableWidget.setRowCount(0)
-
-    def setColortoRow(self, rowIndex, color):
-        if color != None:
-            for j in range(self.tableWidget.columnCount()):
-                self.tableWidget.item(rowIndex, j).setBackground(color)
 
     def setElementInTable(self, array_of_ship):
         row_count = len(array_of_ship)
         self.tableWidget.setRowCount(row_count)
         for index, nave in zip(range(0, row_count), array_of_ship):
-            if nave.getOptimize() == OPTIMIZE:
-                color = QColor(0, 255, 0)
-                optimize = "SI"
-            elif nave.getOptimize() == NO_OPTIMIZE:
-                color = QColor(255, 0, 0)
-                optimize = "NO"
-            elif nave.getOptimize() == SHIP_TO_OPTIMIZE:
-                optimize = ""
-                color = None
-
             self.tableWidget.setItem(index, 0, QTableWidgetItem(str(nave.getNaveName()))) #Nome nave
             self.tableWidget.setItem(index, 1, QTableWidgetItem(str(nave.getCapienzaMassima()) + " mq")) #Mq nave
-            self.tableWidget.setItem(index, 2, QTableWidgetItem(str(nave.getInfoImbarco().getTotMqOccupati()) + " mq")) #max_mq_occupati
-            self.tableWidget.setItem(index, 3, QTableWidgetItem(str(nave.getDeltaSpazioLibero()) + " mq")) #spazio libero
-            self.tableWidget.setItem(index, 4, QTableWidgetItem(str(optimize))) #ottimizza
-            self.setColortoRow(index, color)
 
     def popolateComboBoxShip(self):
-        print("ciao")
+        ship_code, ship_name = AnalyticsController(self).getNaviWithSameTripAndHour(self.data["departure_port_code"],
+                                                          self.data["arrival_port_code"],
+                                                          self.data["booking_ticket_departure_timestamp"],
+                                                          self.data["booking_ticket_arrival_timestamp"])
+        if len(ship_code) == 0:
+            self.nave_combobox.clear()
+            self.nave_combobox.setEnabled(False)
+        else:
+            for nave_code, nave_name in zip(ship_code, ship_name):
+                self.nave_combobox.addItem(nave_code+"-"+nave_name)
+                self.nave_combobox.setEnabled(True)
 
     def writeToTextArea(self, text):
         self.text_area_optimization.appendPlainText(text)
@@ -237,16 +227,28 @@ class AnalyticsScreen(QWidget):
     # SelectBox per la singola nave da ottimizzare
     def ship_filter_selectbox_to_optimize(self):
         cb = QListWidget(self.centralwidget)
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred,QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(cb.sizePolicy().hasHeightForWidth())
         cb.setSizePolicy(sizePolicy)
         cb.setMaximumSize(QSize(16777215, 60))
         cb.setEnabled(False)
+        cb.itemClicked.connect(self.set_ship)
+        cb.setSelectionMode(QListWidget.MultiSelection)
         cb.setObjectName("nave_combobox")
         cb.setToolTip("Selezionare una nave per effettuare l'ottimizzazione del carico.")
         return cb
+
+    def set_ship(self, ship):
+        ship = ship.text()
+        ship_code, ship_name = ship.split("-")
+        if ship_code in self.data["ship_code_selected"]:
+            self.data["ship_code_selected"].remove(ship_code)
+            self.data["ship_name_selected"].remove(ship_name)
+        else:
+            self.data["ship_code_selected"].append(ship_code)
+            self.data["ship_name_selected"].append(ship_name)
 
     def clear_filter_search_data(self):
         cf = QPushButton(self.verticalLayoutWidget)
@@ -280,13 +282,14 @@ class AnalyticsScreen(QWidget):
         self.data = {
             "booking_ticket_departure_timestamp": data_corrente.toString("yyyy-MM-dd"),
             "booking_ticket_arrival_timestamp": data_corrente.toString("yyyy-MM-dd"),
-            "ship_code_selected": "",
-            "ship_name_selected": "",
+            "ship_code_selected": [],
+            "ship_name_selected": [],
             "departure_port_code": "",
             "arrival_port_code": ""
         }
         self.clearTable()
         self.nave_combobox.clearSelection()
+        self.tratta_combobox.setCurrentIndex(0)
         self.data_partenza_selector.setDate(data_corrente)
         self.data_arrivo_selector.setDate(data_corrente)
 

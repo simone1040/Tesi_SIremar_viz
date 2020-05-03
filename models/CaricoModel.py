@@ -70,3 +70,34 @@ def get_trip_from_route_code(route_code):
           "WHERE route_cappelli_route_code = '{}' ".format(route_code)
     df = SQLManager.get_istance().execute_query(string_sql=sql)
     return df.iloc[0]
+
+def get_ship_with_same_tratta(departure_port_code, arrival_port_code, departure_timestamp, arrival_timestamp):
+    ship_code = []
+    ship_name = []
+    sql = "SELECT DATE(route_cappelli_departure_timestamp) AS data_partenza ,COUNT(DISTINCT route_cappelli_ship_code) AS navi " \
+          "FROM tab_route_cappelli " \
+          "WHERE route_cappelli_departure_port_code = '{}' AND route_cappelli_arrival_port_code = '{}' " \
+          "AND route_cappelli_departure_timestamp >= '{}' AND route_cappelli_departure_timestamp <= '{}'" \
+          "GROUP BY DATE(route_cappelli_departure_timestamp) " \
+          "ORDER BY navi desc LIMIT 1"\
+        .format(departure_port_code, arrival_port_code, departure_timestamp, arrival_timestamp)
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    for index, row in df.iterrows():
+        data_partenza = row["data_partenza"]
+        if row["navi"] > 1:
+            ship_code, ship_name = get_ship_for_tratta_and_day(data_partenza, departure_port_code, arrival_port_code)
+    return ship_code, ship_name
+
+def get_ship_for_tratta_and_day(data,departure_port_code,arrival_port_code):
+    ship_code = []
+    ship_name = []
+    sql = "SELECT DISTINCT route_cappelli_ship_code, ship_name " \
+          "FROM tab_route_cappelli " \
+          "INNER JOIN tab_ship ON route_cappelli_ship_code = ship_code " \
+          "WHERE route_cappelli_departure_port_code = '{}' AND route_cappelli_arrival_port_code = '{}' " \
+          "AND route_cappelli_departure_timestamp >= '{}' ".format(departure_port_code, arrival_port_code, data)
+    df = SQLManager.get_istance().execute_query(string_sql=sql)
+    for i, row in df.iterrows():
+        ship_code.append(row["route_cappelli_ship_code"])
+        ship_name.append(row["ship_name"])
+    return ship_code, ship_name
