@@ -186,8 +186,6 @@ class AnalyticsScreen(QWidget):
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
     def function_create_statistics(self):
-        print(self.data["ship_code_selected"])
-        print(len(self.data["ship_code_selected"]))
         if self.data["booking_ticket_departure_timestamp"] > self.data["booking_ticket_arrival_timestamp"]:
             msgbox("La data di partenza non può essere più piccola della data di arrivo")
         elif self.data["departure_port_code"] == "" or self.data["arrival_port_code"] == "":
@@ -209,6 +207,8 @@ class AnalyticsScreen(QWidget):
             self.tableWidget.setItem(index, 1, QTableWidgetItem(str(nave.getCapienzaMassima()) + " mq")) #Mq nave
 
     def popolateComboBoxShip(self):
+        self.data["ship_code_selected"] = []
+        self.data["ship_name_selected"] = []
         ship_code, ship_name = AnalyticsController(self).getNaviWithSameTripAndHour(self.data["departure_port_code"],
                                                           self.data["arrival_port_code"],
                                                           self.data["booking_ticket_departure_timestamp"],
