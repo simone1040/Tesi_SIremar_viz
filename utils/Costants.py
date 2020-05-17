@@ -1,5 +1,5 @@
 import enum
-
+from datetime import datetime
 DFS_ROOT = "hdfs://localhost:9000/"
 PARQUET_FILE_CARGO = DFS_ROOT + "tesi_siremar/siremar_cargo.parquet"
 PARQUET_FILE_PRENOTATION = DFS_ROOT + "tesi_siremar/siremar_prenotation.parquet"
@@ -40,3 +40,4 @@ ANALYTICS_SCREEN = 2
 
 SOGLIA_SPAZIO_LIBERO = 30 #MQ LIBERI CHE SERVONO PER FAR PARTIRE L'ALGORITMO
 SOGLIA_UGUAGLIANZA_CARICO = 10 #MQ DI DIFFERENZA TRA DUE SPAZI LIBERI CHE MI PERMETTONO DI AFFERMARE CHE DUE CARICHI SONO SIMILI
+SOGLIA_CONSIDERAZIONE_ORARIO = datetime.strptime("2:00:00", '%H:%M:%S') #Se i viaggi sono lontani più di due ore li considero come fondamentali
