@@ -44,6 +44,9 @@ class AnalyticsController:
         #Devo prendere il nome del porto dal codice
         porto_partenza_nome = from_port_code_get_name(porto_partenza)
         porto_arrivo_nome = from_port_code_get_name(porto_arrivo)
+        #Prendo nome nave 1 e nome nave 2
+        nome_nave_1 = get_ship_name(nave_code_1)
+        nome_nave_2 = get_ship_name(nave_code_2)
         dataframe_to_plot = DATAFRAME_APPLICATION["dataframe_prenotazioni"]
         #Dal dataframe caricato, prendo le date in maniera univoca
         df_carichi = dataframe_to_plot[((dataframe_to_plot["ship_code"] == nave_code_2) | (dataframe_to_plot["ship_code"] == nave_code_1)) &
@@ -76,25 +79,21 @@ class AnalyticsController:
                         if capienza_nave_1 >= sum_mq + SOGLIA_SPAZIO_LIBERO or capienza_nave_2 >= sum_mq + SOGLIA_SPAZIO_LIBERO:
                             d[hour_i][hour_j][self.CASI_POSITIVI] = d[hour_i][hour_j][self.CASI_POSITIVI] + 1
                             if capienza_nave_1 >= sum_mq + SOGLIA_SPAZIO_LIBERO:
-                                d[hour_i][hour_j][nave_code_1] = d[hour_i][hour_j][nave_code_1] + 1
+                                d[hour_i][hour_j][nome_nave_1] = d[hour_i][hour_j][nome_nave_1] + 1
                             if capienza_nave_2 >= sum_mq + SOGLIA_SPAZIO_LIBERO:
-                                d[hour_i][hour_j][nave_code_2] = d[hour_i][hour_j][nave_code_2] + 1
-        #Prendo nome nave 1 e nome nave 2
-        nome_nave_1 = get_ship_name(nave_code_1)
-        nome_nave_2 = get_ship_name(nave_code_2)
+                                d[hour_i][hour_j][nome_nave_2] = d[hour_i][hour_j][nome_nave_2] + 1
         return ReportSum(nome_nave_1, nome_nave_2, d)
 
     def getStatistics(self):
-        array_of_dict = []
+        array_of_report = []
         analyzed_ship = self.__data["ship_code_selected"]
         for ship_code_first, ship_name_first in zip(self.__data["ship_code_selected"], self.__data["ship_name_selected"]):
             for ship_code_two, ship_name_two in zip(self.__data["ship_code_selected"], self.__data["ship_name_selected"]):
                 if ship_code_first != ship_code_two and ship_code_two in analyzed_ship:
                     d = self.analyze_two_ship_cargo(ship_code_first, ship_code_two)
-                    array_of_dict.append(d)
+                    array_of_report.append(d)
             analyzed_ship.remove(ship_code_first)
-        exit(1)
-        return array_of_dict
+        return array_of_report
 
 
 

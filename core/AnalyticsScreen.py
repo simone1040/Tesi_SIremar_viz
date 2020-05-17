@@ -122,9 +122,10 @@ class AnalyticsScreen(QWidget):
 
     def table_widget(self):
         tableWidget = QTableWidget(self.centralwidget)
-        tableWidget.setColumnCount(2)
+        tableWidget.setColumnCount(8)
         tableWidget.setRowCount(0)
-        tableWidget.setHorizontalHeaderLabels(["Nave", "Capienza Massima"])
+        tableWidget.setHorizontalHeaderLabels(["Nave_1", "Nave_2", "Partenza viaggio", "Partenza viaggio", "Casi Totali"
+                                                  , "Casi positivi", "Casi positivi nave_1", "Casi positivi nave_2"])
         tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         tableWidget.setObjectName("tableWidget")
         return tableWidget
@@ -195,16 +196,33 @@ class AnalyticsScreen(QWidget):
         else:
             self.writeToTextArea("Tratta selezionata --> {}-{}".format(self.data["departure_port_code"], self.data["arrival_port_code"]))
             res = AnalyticsController(self).getStatistics()
+            self.setElementInTable(res)
 
     def clearTable(self):
         self.tableWidget.setRowCount(0)
 
-    def setElementInTable(self, array_of_ship):
-        row_count = len(array_of_ship)
+    def setElementInTable(self, array_of_report):
+        inserted_row = 0
+        row_count = 0
+        for report in array_of_report:
+            for key_partenza,value in report.getReport().items():
+                for key_partenza2, value_2 in value.items():
+                    row_count += 1
         self.tableWidget.setRowCount(row_count)
-        for index, nave in zip(range(0, row_count), array_of_ship):
-            self.tableWidget.setItem(index, 0, QTableWidgetItem(str(nave.getNaveName()))) #Nome nave
-            self.tableWidget.setItem(index, 1, QTableWidgetItem(str(nave.getCapienzaMassima()) + " mq")) #Mq nave
+        for report in array_of_report:
+            for key_partenza, value in report.getReport().items():
+                for key_partenza2, value_2 in value.items():
+                    self.tableWidget.setItem(inserted_row, 0, QTableWidgetItem(str(report.getNave_1())))  # Nome nave_1
+                    self.tableWidget.setItem(inserted_row, 1, QTableWidgetItem(str(report.getNave_2())))  # Nome nave_2
+                    self.tableWidget.setItem(inserted_row, 2, QTableWidgetItem(str(key_partenza)))  #partenza_1
+                    self.tableWidget.setItem(inserted_row, 3, QTableWidgetItem(str(key_partenza2)))  #partenza_2
+                    self.tableWidget.setItem(inserted_row, 4, QTableWidgetItem(str(value_2["casi_totali"])))  #casi totali
+                    self.tableWidget.setItem(inserted_row, 5, QTableWidgetItem(str(value_2["casi_positivi"])))  #casi positivi
+                    self.tableWidget.setItem(inserted_row, 6, QTableWidgetItem(str(value_2[str(report.getNave_1())])))  #casi positivi nave 1
+                    self.tableWidget.setItem(inserted_row, 7, QTableWidgetItem(str(value_2[str(report.getNave_2())])))  #casi positivi nave 2
+                    inserted_row += 1
+                    print(value_2[str(report.getNave_2())])
+
 
     def popolateComboBoxShip(self):
         self.data["ship_code_selected"] = []
