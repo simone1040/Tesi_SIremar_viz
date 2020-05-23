@@ -86,14 +86,15 @@ class AnalyticsController:
 
     def getStatistics(self):
         array_of_report = []
-        analyzed_ship = self.__data["ship_code_selected"]
-        for ship_code_first, ship_name_first in zip(self.__data["ship_code_selected"], self.__data["ship_name_selected"]):
-            for ship_code_two, ship_name_two in zip(self.__data["ship_code_selected"], self.__data["ship_name_selected"]):
-                if ship_code_first != ship_code_two and ship_code_two in analyzed_ship:
-                    d = self.analyze_two_ship_cargo(ship_code_first, ship_code_two)
-                    array_of_report.append(d)
-            analyzed_ship.remove(ship_code_first)
+        ship_code = self.__data["ship_code_selected"]
+        ship_name = self.__data["ship_name_selected"]
+        for i in range(0, len(ship_code)):
+            for j in range(i+1, len(ship_code)):
+                self.__AnalyticsScreen.writeToTextArea("Analisi carichi delle seguenti navi: {} | {}".format(ship_name[i], ship_name[j]))
+                d = self.analyze_two_ship_cargo(ship_code[i], ship_code[j])
+                array_of_report.append(d)
         return array_of_report
+
 
 
 

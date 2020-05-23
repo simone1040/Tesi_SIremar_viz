@@ -57,27 +57,36 @@ class ScreenController:
             self.stack_widget.setCurrentIndex(screen_to_show)
         self.actual_screen = screen_to_show
 
+    def getHomeButton(self):
+        home_button = QPushButton()
+        home_button.setObjectName("pushButton_2")
+        home_button.clicked.connect(lambda: self.__change_screen(HOME_SCREEN))
+        home_button.setText("HOME")
+        return home_button
+
+    def getOptimizationButton(self):
+        optimization_button = QPushButton()
+        optimization_button.clicked.connect(lambda: self.__change_screen(OPTIMIZATION_SCREEN))
+        optimization_button.setObjectName("pushButton")
+        optimization_button.setText("OTTIMIZZAZIONE CARICO")
+        return optimization_button
+
+    def getAnalyticsButton(self):
+        analytics_button = QPushButton()
+        analytics_button.clicked.connect(lambda: self.__change_screen(ANALYTICS_SCREEN))
+        analytics_button.setObjectName("pushButton")
+        analytics_button.setText("ANALYTICS")
+        return analytics_button
+
     def left_menu_button(self):
         layout_button_menu = QVBoxLayout()
         layout_button_menu.setSpacing(15)
         layout_button_menu.setObjectName("layout_button_menu")
         spacerItem8 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Fixed)
         layout_button_menu.addItem(spacerItem8)
-        home_button = QPushButton()
-        home_button.setObjectName("pushButton_2")
-        home_button.clicked.connect(lambda: self.__change_screen(HOME_SCREEN))
-        home_button.setText("HOME")
-        layout_button_menu.addWidget(home_button)
-        optimization_button = QPushButton()
-        optimization_button.clicked.connect(lambda: self.__change_screen(OPTIMIZATION_SCREEN))
-        optimization_button.setObjectName("pushButton")
-        optimization_button.setText("OTTIMIZZAZIONE CARICO")
-        layout_button_menu.addWidget(optimization_button)
-        analytics_button = QPushButton()
-        analytics_button.clicked.connect(lambda: self.__change_screen(ANALYTICS_SCREEN))
-        analytics_button.setObjectName("pushButton")
-        analytics_button.setText("ANALYTICS")
-        layout_button_menu.addWidget(analytics_button)
+        layout_button_menu.addWidget(self.getHomeButton())
+        layout_button_menu.addWidget(self.getOptimizationButton())
+        layout_button_menu.addWidget(self.getAnalyticsButton())
         spacerItem9 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         layout_button_menu.addItem(spacerItem9)
         return layout_button_menu

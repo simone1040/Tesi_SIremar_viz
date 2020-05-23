@@ -124,11 +124,27 @@ class AnalyticsScreen(QWidget):
         tableWidget = QTableWidget(self.centralwidget)
         tableWidget.setColumnCount(8)
         tableWidget.setRowCount(0)
-        tableWidget.setHorizontalHeaderLabels(["Nave_1", "Nave_2", "Partenza viaggio", "Partenza viaggio", "Casi Totali"
-                                                  , "Casi positivi", "Casi positivi nave_1", "Casi positivi nave_2"])
+        tableWidget.setHorizontalHeaderLabels(
+            ["Nave_1", "Nave_2", "Partenza nave_1", "Partenza nave_2", "Totali", "Positivi", "Positivi nave_1",
+             "Positivi nave_2"])
         tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         tableWidget.setObjectName("tableWidget")
         return tableWidget
+
+    def getTextArea(self):
+        text_area = QPlainTextEdit(self.centralwidget)
+        text_area.setMinimumSize(QSize(400, 763))
+        text_area.setReadOnly(True)
+        text_area.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        text_area.setObjectName("text_area_optimization")
+        return text_area
+
+    def getBottomSeparatorLine(self):
+        bottom_separator_line = QFrame(self.verticalLayoutWidget)
+        bottom_separator_line.setFrameShape(QFrame.HLine)
+        bottom_separator_line.setFrameShadow(QFrame.Sunken)
+        bottom_separator_line.setObjectName("top_separator_line")
+        return bottom_separator_line
 
     def body(self):
         self.body_layout = QHBoxLayout()
@@ -145,10 +161,7 @@ class AnalyticsScreen(QWidget):
         self.body_layout.addWidget(self.line)
         self.tableWidget = self.table_widget()
         self.body_layout.addWidget(self.tableWidget)
-        self.text_area_optimization = QPlainTextEdit(self.centralwidget)
-        self.text_area_optimization.setMinimumSize(QSize(250, 763))
-        self.text_area_optimization.setReadOnly(True)
-        self.text_area_optimization.setObjectName("text_area_optimization")
+        self.text_area_optimization = self.getTextArea()
         self.body_layout.addWidget(self.text_area_optimization)
         self.verticalLayout.addLayout(self.body_layout)
         spacerItem8 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -158,10 +171,7 @@ class AnalyticsScreen(QWidget):
         self.bottom_separator_layout.setObjectName("top_separator_layout")
         spacerItem6 = QSpacerItem(40, 25, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.bottom_separator_layout.addItem(spacerItem6)
-        self.bottom_separator_line = QFrame(self.verticalLayoutWidget)
-        self.bottom_separator_line.setFrameShape(QFrame.HLine)
-        self.bottom_separator_line.setFrameShadow(QFrame.Sunken)
-        self.bottom_separator_line.setObjectName("top_separator_line")
+        self.bottom_separator_line = self.getBottomSeparatorLine()
         self.bottom_separator_layout.addWidget(self.bottom_separator_line)
         spacerItem7 = QSpacerItem(40, 40, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.bottom_separator_layout.addItem(spacerItem7)
@@ -194,6 +204,7 @@ class AnalyticsScreen(QWidget):
         elif len(self.data["ship_code_selected"]) < 2:
             msgbox("Scegliere almeno due navi per poter effettuare l'ottimizzazione.")
         else:
+            self.writeToTextArea("|| INIZIO CALCOLO STATISTICA || ")
             self.writeToTextArea("Tratta selezionata --> {}-{}".format(self.data["departure_port_code"], self.data["arrival_port_code"]))
             res = AnalyticsController(self).getStatistics()
             self.setElementInTable(res)
@@ -221,7 +232,6 @@ class AnalyticsScreen(QWidget):
                     self.tableWidget.setItem(inserted_row, 6, QTableWidgetItem(str(value_2[str(report.getNave_1())])))  #casi positivi nave 1
                     self.tableWidget.setItem(inserted_row, 7, QTableWidgetItem(str(value_2[str(report.getNave_2())])))  #casi positivi nave 2
                     inserted_row += 1
-                    print(value_2[str(report.getNave_2())])
 
 
     def popolateComboBoxShip(self):

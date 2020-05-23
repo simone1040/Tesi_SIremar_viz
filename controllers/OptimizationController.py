@@ -3,6 +3,8 @@ from utils.Costants import DATAFRAME_APPLICATION, SOGLIA_SPAZIO_LIBERO, SOGLIA_U
 from utils.UtilsFunction import format_date_to_view
 from utils.Ship import Ship
 import pandas as pd
+
+
 class OptimizationController():
     __optscreen = None
     __data = None
@@ -73,7 +75,6 @@ class OptimizationController():
                 if ship_selezionata.getInfoImbarco().getTotMqOccupati() + SOGLIA_SPAZIO_LIBERO < ship_proposta.getCapienzaMassima():
                     if ship_selezionata.getInfoImbarco().getTotMqOccupati() < ship_proposta.getInfoImbarco().getTotMqOccupati():
                         toRet = True
-
         #CASO2
         elif ship_selezionata.getInfoImbarco().getTotMqOccupati() + SOGLIA_SPAZIO_LIBERO >= ship_selezionata.getCapienzaMassima():
             #CASO 2.1

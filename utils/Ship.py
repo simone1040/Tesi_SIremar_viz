@@ -3,8 +3,6 @@ from models.CaricoModel import getMaxCaricoForShip
 from utils.Costants import NO_OPTIMIZE
 from utils.Imbarco import Imbarco
 class Ship:
-
-
     __nave_code = ""
     __nave_name = ""
     __capienza_massima = 0
